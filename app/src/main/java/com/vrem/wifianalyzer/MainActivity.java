@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
     private static final int PERMISSIONS_REQUEST_CODE_ACCESS_LOCATION = 0x123450;
     private static final int PERMISSIONS_REQUEST_CODE_ACCESS_WIFI_STATE = 0x123451;
 
-    private MainContext mainContext = MainContext.INSTANCE;
+    
     private ThemeStyle currentThemeStyle;
     private NavigationMenuView navigationMenuView;
     private String currentCountryCode;
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         checkPermissions();
         initializeMainContext(this);
 
-        Settings settings = mainContext.getSettings();
+        Settings settings = MainContext.INSTANCE.getSettings();
         settings.initializeDefaultValues();
         setCurrentThemeStyle(settings.getThemeStyle());
         setTheme(getCurrentThemeStyle().themeAppCompatStyle());
@@ -124,6 +125,7 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         Settings settings = new Settings(context);
         Configuration configuration = new Configuration(isLargeScreenLayout(), isDevelopment());
 
+        MainContext mainContext = MainContext.INSTANCE;
         mainContext.setContext(context);
         mainContext.setConfiguration(configuration);
         mainContext.setResources(context.getResources());
@@ -140,16 +142,20 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
     }
 
     private void setWiFiChannelPairs() {
-        String countryCode = mainContext.getSettings().getCountryCode();
+        Settings settings = MainContext.INSTANCE.getSettings();
+        String countryCode = settings.getCountryCode();
         if (!countryCode.equals(currentCountryCode)) {
             Pair<WiFiChannel, WiFiChannel> pair = WiFiBand.GHZ5.getWiFiChannels().getWiFiChannelPairFirst(countryCode);
-            mainContext.getConfiguration().setWiFiChannelPair(pair);
+            Configuration configuration = MainContext.INSTANCE.getConfiguration();
+            configuration.setWiFiChannelPair(pair);
             currentCountryCode = countryCode;
         }
     }
 
     private boolean isLargeScreenLayout() {
-        int screenLayoutSize = getResources().getConfiguration().screenLayout & android.content.res.Configuration.SCREENLAYOUT_SIZE_MASK;
+        Resources resources = getResources();
+        android.content.res.Configuration configuration = resources.getConfiguration();
+        int screenLayoutSize = configuration.screenLayout & android.content.res.Configuration.SCREENLAYOUT_SIZE_MASK;
         return screenLayoutSize == android.content.res.Configuration.SCREENLAYOUT_SIZE_LARGE ||
             screenLayoutSize == android.content.res.Configuration.SCREENLAYOUT_SIZE_XLARGE;
     }
@@ -160,13 +166,14 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
             reloadActivity();
         } else {
             setWiFiChannelPairs();
-            mainContext.getScanner().update();
+            Scanner scanner = MainContext.INSTANCE.getScanner();
+            scanner.update();
             updateSubTitle();
         }
     }
 
     protected boolean shouldReload() {
-        Settings settings = mainContext.getSettings();
+        Settings settings = MainContext.INSTANCE.getSettings();
         ThemeStyle settingThemeStyle = settings.getThemeStyle();
         boolean result = !getCurrentThemeStyle().equals(settingThemeStyle);
         if (result) {
@@ -212,21 +219,24 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
 
     @Override
     protected void onPause() {
-        mainContext.getScanner().pause();
+        Scanner scanner = MainContext.INSTANCE.getScanner();
+        scanner.pause();
         super.onPause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mainContext.getScanner().resume();
+        Scanner scanner = MainContext.INSTANCE.getScanner();
+        scanner.resume();
     }
 
     private void updateSubTitle() {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             NavigationMenu navigationMenu = navigationMenuView.getCurrentNavigationMenu();
-            actionBar.setSubtitle(navigationMenu.isWiFiBandSwitchable() ? mainContext.getSettings().getWiFiBand().getBand() : StringUtils.EMPTY);
+            Settings settings = MainContext.INSTANCE.getSettings();
+            actionBar.setSubtitle(navigationMenu.isWiFiBandSwitchable() ? settings.getWiFiBand().getBand() : StringUtils.EMPTY);
         }
     }
 
@@ -238,7 +248,8 @@ public class MainActivity extends AppCompatActivity implements OnSharedPreferenc
         @Override
         public void onClick(View view) {
             if (navigationMenuView.getCurrentNavigationMenu().isWiFiBandSwitchable()) {
-                mainContext.getSettings().toggleWiFiBand();
+                Settings settings = MainContext.INSTANCE.getSettings();
+                settings.toggleWiFiBand();
             }
         }
     }
