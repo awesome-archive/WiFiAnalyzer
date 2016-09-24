@@ -29,6 +29,7 @@ import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.R;
 import com.vrem.wifianalyzer.RobolectricUtil;
 import com.vrem.wifianalyzer.wifi.band.WiFiWidth;
+import com.vrem.wifianalyzer.wifi.model.Demo;
 import com.vrem.wifianalyzer.wifi.model.WiFiAdditional;
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail;
 import com.vrem.wifianalyzer.wifi.model.WiFiSignal;
@@ -69,7 +70,7 @@ public class AccessPointsDetailTest {
         // execute
         fixture.setView(mainActivity.getResources(), view, wiFiDetail, accessPointsDetailOptions);
         // validate
-        validateTextViewValues(wiFiDetail, "SSID");
+        validateTextViewValues(wiFiDetail);
 
         validateTextViewValue(wiFiDetail.getWiFiAdditional().getIPAddress(), R.id.ipAddress);
         assertEquals(View.VISIBLE, view.findViewById(R.id.ipAddress).getVisibility());
@@ -98,7 +99,7 @@ public class AccessPointsDetailTest {
         // execute
         fixture.setView(mainActivity.getResources(), view, wiFiDetail, accessPointsDetailOptions);
         // validate
-        validateTextViewValues(wiFiDetail, "***");
+        validateTextViewValues(wiFiDetail);
         WiFiSignal wiFiSignal = wiFiDetail.getWiFiSignal();
         validateTextViewValue(String.format("%d - %d %s", wiFiSignal.getFrequencyStart(), wiFiSignal.getFrequencyEnd(), WifiInfo.FREQUENCY_UNITS), R.id.channel_frequency_range);
 
@@ -110,9 +111,9 @@ public class AccessPointsDetailTest {
         assertEquals(View.VISIBLE, view.findViewById(R.id.channel_frequency_range_row).getVisibility());
     }
 
-    private void validateTextViewValues(@NonNull WiFiDetail wiFiDetail, @NonNull String ssid) {
+    private void validateTextViewValues(@NonNull WiFiDetail wiFiDetail) {
         WiFiSignal wiFiSignal = wiFiDetail.getWiFiSignal();
-        validateTextViewValue(ssid + " (" + wiFiDetail.getBSSID() + ")", R.id.ssid);
+        validateTextViewValue(Demo.INSTANCE.getSSID(wiFiDetail.getSSID()) + " (" + Demo.INSTANCE.getBSSID(wiFiDetail.getBSSID(), wiFiDetail.getSSID()) + ")", R.id.ssid);
         validateTextViewValue(String.format("%ddBm", wiFiSignal.getLevel()), R.id.level);
         validateTextViewValue(String.format("%d", wiFiSignal.getWiFiChannel().getChannel()), R.id.channel);
         validateTextViewValue(String.format("%d%s", wiFiSignal.getFrequency(), WifiInfo.FREQUENCY_UNITS), R.id.frequency);

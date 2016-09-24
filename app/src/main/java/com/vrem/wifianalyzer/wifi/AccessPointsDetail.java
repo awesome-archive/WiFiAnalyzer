@@ -30,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.vrem.wifianalyzer.R;
+import com.vrem.wifianalyzer.wifi.model.Demo;
 import com.vrem.wifianalyzer.wifi.model.Security;
 import com.vrem.wifianalyzer.wifi.model.Strength;
 import com.vrem.wifianalyzer.wifi.model.WiFiAdditional;
@@ -45,7 +46,7 @@ public class AccessPointsDetail {
         TextView textIPAddress = (TextView) view.findViewById(R.id.ipAddress);
         TextView textLinkSpeed = (TextView) view.findViewById(R.id.linkSpeed);
 
-        textSSID.setText(wiFiDetail.getTitle());
+        textSSID.setText(Demo.INSTANCE.getSSID(wiFiDetail.getSSID()) + " (" + Demo.INSTANCE.getBSSID(wiFiDetail.getBSSID(), wiFiDetail.getSSID()) + ")");
 
         WiFiAdditional wiFiAdditional = wiFiDetail.getWiFiAdditional();
         if (wiFiAdditional.isConnected()) {

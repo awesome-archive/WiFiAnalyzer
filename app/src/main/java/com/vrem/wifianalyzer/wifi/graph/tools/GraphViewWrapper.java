@@ -36,6 +36,7 @@ import com.jjoe64.graphview.series.TitleLineGraphSeries;
 import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.wifi.AccessPointsDetail;
 import com.vrem.wifianalyzer.wifi.band.WiFiChannel;
+import com.vrem.wifianalyzer.wifi.model.Demo;
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail;
 import com.vrem.wifianalyzer.wifi.model.WiFiSignal;
 
@@ -133,7 +134,7 @@ public class GraphViewWrapper {
         addSeries(series);
         WiFiSignal wiFiSignal = wiFiDetail.getWiFiSignal();
         WiFiChannel wiFiChannel = wiFiSignal.getWiFiChannel();
-        series.setTitle(wiFiDetail.getSSID() + " " + wiFiChannel.getChannel());
+        series.setTitle(Demo.INSTANCE.getSSID(wiFiDetail.getSSID()) + " " + wiFiChannel.getChannel());
         series.setOnDataPointTapListener(new GraphTapListener());
     }
 

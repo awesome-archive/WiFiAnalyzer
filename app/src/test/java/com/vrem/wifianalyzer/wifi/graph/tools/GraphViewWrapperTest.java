@@ -27,6 +27,7 @@ import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.BaseSeries;
 import com.jjoe64.graphview.series.DataPoint;
+import com.vrem.wifianalyzer.wifi.model.Demo;
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail;
 
 import org.junit.Before;
@@ -132,7 +133,7 @@ public class GraphViewWrapperTest {
         assertTrue(actual);
         verify(seriesCache).add(wiFiDetail, baseSeries);
         verify(graphView).addSeries(baseSeries);
-        verify(baseSeries).setTitle(wiFiDetail.getSSID() + " " + wiFiDetail.getWiFiSignal().getWiFiChannel().getChannel());
+        verify(baseSeries).setTitle(Demo.INSTANCE.getSSID(wiFiDetail.getSSID()) + " " + wiFiDetail.getWiFiSignal().getWiFiChannel().getChannel());
         verify(baseSeries).setOnDataPointTapListener(any(GraphViewWrapper.GraphTapListener.class));
     }
 
@@ -160,7 +161,7 @@ public class GraphViewWrapperTest {
         assertTrue(actual);
         verify(seriesCache).add(wiFiDetail, baseSeries);
         verify(graphView).addSeries(baseSeries);
-        verify(baseSeries).setTitle(wiFiDetail.getSSID() + " " + wiFiDetail.getWiFiSignal().getWiFiChannel().getChannel());
+        verify(baseSeries).setTitle(Demo.INSTANCE.getSSID(wiFiDetail.getSSID()) + " " + wiFiDetail.getWiFiSignal().getWiFiChannel().getChannel());
         verify(baseSeries).setOnDataPointTapListener(any(GraphViewWrapper.GraphTapListener.class));
     }
 
