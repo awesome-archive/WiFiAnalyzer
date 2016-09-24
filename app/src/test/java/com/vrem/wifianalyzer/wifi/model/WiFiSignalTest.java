@@ -1,44 +1,51 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.model;
+
+import com.vrem.wifianalyzer.wifi.band.WiFiBand;
+import com.vrem.wifianalyzer.wifi.band.WiFiWidth;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 public class WiFiSignalTest {
-    private static final int FREQUENCY = 2435;
+    private static final int FREQUENCY = 2432;
     private static final int CHANNEL = 5;
     private static final int LEVEL = -65;
 
     private WiFiSignal fixture;
 
     @Before
-    public void setUp() throws Exception {
-        fixture = new WiFiSignal(FREQUENCY, LEVEL);
+    public void setUp() {
+        fixture = new WiFiSignal(FREQUENCY, WiFiWidth.MHZ_20, LEVEL);
     }
 
     @Test
     public void testWiFiFrequency() throws Exception {
         // validate
         assertEquals(LEVEL, fixture.getLevel());
-        assertEquals(WiFiBand.GHZ_2, fixture.getWiFiBand());
+        assertEquals(WiFiBand.GHZ2, fixture.getWiFiBand());
         assertEquals(WiFiWidth.MHZ_20, fixture.getWiFiWidth());
     }
 
@@ -48,9 +55,9 @@ public class WiFiSignalTest {
         fixture = new WiFiSignal(FREQUENCY, WiFiWidth.MHZ_80, LEVEL);
         // validate
         assertEquals(FREQUENCY, fixture.getFrequency());
-        assertEquals(CHANNEL, fixture.getChannel());
+        assertEquals(CHANNEL, fixture.getWiFiChannel().getChannel());
         assertEquals(LEVEL, fixture.getLevel());
-        assertEquals(WiFiBand.GHZ_2, fixture.getWiFiBand());
+        assertEquals(WiFiBand.GHZ2, fixture.getWiFiBand());
         assertEquals(WiFiWidth.MHZ_80, fixture.getWiFiWidth());
     }
 
@@ -62,10 +69,18 @@ public class WiFiSignalTest {
     }
 
     @Test
-    public void testGetChannel() throws Exception {
-        assertEquals(CHANNEL, fixture.getChannel());
-        assertEquals(CHANNEL - WiFiWidth.MHZ_20.getChannelWidthHalf(), fixture.getChannelStart());
-        assertEquals(CHANNEL + WiFiWidth.MHZ_20.getChannelWidthHalf(), fixture.getChannelEnd());
+    public void testGetInRange() throws Exception {
+        assertTrue(fixture.isInRange(FREQUENCY));
+        assertTrue(fixture.isInRange(FREQUENCY - WiFiWidth.MHZ_20.getFrequencyWidthHalf()));
+        assertTrue(fixture.isInRange(FREQUENCY + WiFiWidth.MHZ_20.getFrequencyWidthHalf()));
+
+        assertFalse(fixture.isInRange(FREQUENCY - WiFiWidth.MHZ_20.getFrequencyWidthHalf() - 1));
+        assertFalse(fixture.isInRange(FREQUENCY + WiFiWidth.MHZ_20.getFrequencyWidthHalf() + 1));
+    }
+
+    @Test
+    public void testGetWiFiChannel() throws Exception {
+        assertEquals(CHANNEL, fixture.getWiFiChannel().getChannel());
     }
 
     @Test
@@ -81,7 +96,7 @@ public class WiFiSignalTest {
     @Test
     public void testEquals() throws Exception {
         // setup
-        WiFiSignal other = new WiFiSignal(FREQUENCY, LEVEL);
+        WiFiSignal other = new WiFiSignal(FREQUENCY, WiFiWidth.MHZ_20, LEVEL);
         // execute & validate
         assertEquals(fixture, other);
         assertNotSame(fixture, other);
@@ -90,7 +105,7 @@ public class WiFiSignalTest {
     @Test
     public void testHashCode() throws Exception {
         // setup
-        WiFiSignal other = new WiFiSignal(FREQUENCY, LEVEL);
+        WiFiSignal other = new WiFiSignal(FREQUENCY, WiFiWidth.MHZ_20, LEVEL);
         // execute & validate
         assertEquals(fixture.hashCode(), other.hashCode());
     }

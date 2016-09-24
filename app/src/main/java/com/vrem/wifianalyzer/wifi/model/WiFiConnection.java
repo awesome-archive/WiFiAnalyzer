@@ -1,17 +1,19 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.model;
@@ -24,20 +26,23 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class WiFiConnection {
-    public static final WiFiConnection EMPTY = new WiFiConnection(StringUtils.EMPTY, StringUtils.EMPTY, StringUtils.EMPTY);
+    public static final int LINK_SPEED_INVALID = -1;
+    public static final WiFiConnection EMPTY = new WiFiConnection(StringUtils.EMPTY, StringUtils.EMPTY);
 
     private final String SSID;
     private final String BSSID;
     private final String ipAddress;
+    private final int linkSpeed;
 
-    public WiFiConnection(@NonNull String SSID, @NonNull String BSSID, @NonNull String ipAddress) {
+    public WiFiConnection(@NonNull String SSID, @NonNull String BSSID, @NonNull String ipAddress, int linkSpeed) {
         this.SSID = SSID;
         this.BSSID = BSSID;
         this.ipAddress = ipAddress;
+        this.linkSpeed = linkSpeed;
     }
 
     public WiFiConnection(@NonNull String SSID, @NonNull String BSSID) {
-        this(SSID, BSSID, StringUtils.EMPTY);
+        this(SSID, BSSID, StringUtils.EMPTY, LINK_SPEED_INVALID);
     }
 
     public String getSSID() {
@@ -50,6 +55,10 @@ public class WiFiConnection {
 
     public String getIpAddress() {
         return ipAddress;
+    }
+
+    public int getLinkSpeed() {
+        return linkSpeed;
     }
 
     @Override

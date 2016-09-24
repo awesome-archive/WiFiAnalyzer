@@ -1,40 +1,47 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.about;
 
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
+import com.vrem.wifianalyzer.Configuration;
+import com.vrem.wifianalyzer.MainActivity;
 import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.R;
+import com.vrem.wifianalyzer.settings.Settings;
+import com.vrem.wifianalyzer.settings.ThemeStyle;
 
 public class AboutActivity extends AppCompatActivity {
-    private final MainContext mainContext = MainContext.INSTANCE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(mainContext.getSettings().getThemeStyle().themeAppCompatStyle());
+        setCustomTheme();
 
         super.onCreate(savedInstanceState);
 
@@ -43,6 +50,8 @@ public class AboutActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        setApplicationName();
+        setPackageName();
         setVersionNumber();
 
         ActionBar actionBar = getSupportActionBar();
@@ -52,12 +61,44 @@ public class AboutActivity extends AppCompatActivity {
         }
     }
 
+    private void setCustomTheme() {
+        Settings settings = MainContext.INSTANCE.getSettings();
+        if (settings != null) {
+            ThemeStyle themeStyle = settings.getThemeStyle();
+            setTheme(themeStyle.themeAppCompatStyle());
+        }
+    }
+
     private void setVersionNumber() {
+        MainContext mainContext = MainContext.INSTANCE;
         try {
-            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            ((TextView) findViewById(R.id.version_info)).setText(packageInfo.versionName + " - " + packageInfo.versionCode);
+            PackageManager packageManager = getPackageManager();
+            PackageInfo packageInfo = packageManager.getPackageInfo(getPackageName(), 0);
+            String versionInfo = packageInfo.versionName;
+            Configuration configuration = mainContext.getConfiguration();
+            if (configuration.isDevelopmentMode()) {
+                versionInfo += " - " + packageInfo.versionCode + " SDK:" + Build.VERSION.SDK_INT;
+            }
+            ((TextView) findViewById(R.id.about_version_info)).setText(versionInfo);
         } catch (PackageManager.NameNotFoundException e) {
             mainContext.getLogger().error(this, "Version Information", e);
+        }
+    }
+
+    private void setPackageName() {
+        Configuration configuration = MainContext.INSTANCE.getConfiguration();
+        if (configuration.isDevelopmentMode()) {
+            TextView textView = (TextView) findViewById(R.id.about_package_name);
+            textView.setText(getPackageName());
+            textView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void setApplicationName() {
+        Configuration configuration = MainContext.INSTANCE.getConfiguration();
+        if (configuration.isDevelopmentMode()) {
+            TextView textView = (TextView) findViewById(R.id.about_app_name);
+            textView.setText(textView.getText() + " " + MainActivity.WI_FI_ANALYZER_BETA);
         }
     }
 

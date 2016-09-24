@@ -1,25 +1,25 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer;
 
 import android.content.Context;
-import android.net.wifi.WifiManager;
-import android.os.Handler;
-import android.support.annotation.NonNull;
+import android.content.res.Resources;
 import android.view.LayoutInflater;
 
 import com.vrem.wifianalyzer.settings.Settings;
@@ -32,35 +32,27 @@ public enum MainContext {
 
     private Settings settings;
     private Context context;
+    private Resources resources;
     private Scanner scanner;
-    private Handler handler;
     private VendorService vendorService;
-    private WifiManager wifiManager;
     private LayoutInflater layoutInflater;
     private Database database;
     private Logger logger;
+    private Configuration configuration;
 
     public Settings getSettings() {
         return settings;
     }
 
-    public void setSettings(@NonNull Settings settings) {
+    void setSettings(Settings settings) {
         this.settings = settings;
-    }
-
-    public Handler getHandler() {
-        return handler;
-    }
-
-    public void setHandler(@NonNull Handler handler) {
-        this.handler = handler;
     }
 
     public VendorService getVendorService() {
         return vendorService;
     }
 
-    public void setVendorService(@NonNull VendorService vendorService) {
+    void setVendorService(VendorService vendorService) {
         this.vendorService = vendorService;
     }
 
@@ -68,23 +60,15 @@ public enum MainContext {
         return scanner;
     }
 
-    public void setScanner(@NonNull Scanner scanner) {
+    void setScanner(Scanner scanner) {
         this.scanner = scanner;
-    }
-
-    public WifiManager getWifiManager() {
-        return wifiManager;
-    }
-
-    public void setWifiManager(@NonNull WifiManager wifiManager) {
-        this.wifiManager = wifiManager;
     }
 
     public LayoutInflater getLayoutInflater() {
         return layoutInflater;
     }
 
-    public void setLayoutInflater(LayoutInflater layoutInflater) {
+    void setLayoutInflater(LayoutInflater layoutInflater) {
         this.layoutInflater = layoutInflater;
     }
 
@@ -92,15 +76,23 @@ public enum MainContext {
         return database;
     }
 
-    public void setDatabase(@NonNull Database database) {
+    void setDatabase(Database database) {
         this.database = database;
+    }
+
+    public Resources getResources() {
+        return resources;
+    }
+
+    void setResources(Resources resources) {
+        this.resources = resources;
     }
 
     public Context getContext() {
         return context;
     }
 
-    public void setContext(@NonNull Context context) {
+    void setContext(Context context) {
         this.context = context;
     }
 
@@ -108,8 +100,15 @@ public enum MainContext {
         return logger;
     }
 
-    public void setLogger(@NonNull Logger logger) {
+    void setLogger(Logger logger) {
         this.logger = logger;
     }
 
+    public Configuration getConfiguration() {
+        return configuration;
+    }
+
+    void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
+    }
 }

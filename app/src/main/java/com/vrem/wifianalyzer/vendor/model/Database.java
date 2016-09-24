@@ -1,52 +1,53 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.vendor.model;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
-
-import com.vrem.wifianalyzer.MainContext;
+import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Database extends SQLiteOpenHelper implements BaseColumns {
-    static final int DATABASE_VERSION = 1;
-    static final String DATABASE_NAME = "WiFiAnalyzerDB.db";
 
     static final String TABLE_NAME = "macvendorname";
-
     static final String COLUMN_MAC = "mac";
     static final String COLUMN_NAME = "name";
     static final String[] ALL_COLUMNS = new String[]{_ID, COLUMN_NAME, COLUMN_MAC};
     static final String SORT_ORDER = COLUMN_NAME + "," + COLUMN_MAC + "," + _ID;
-
     static final String TABLE_CREATE = "CREATE TABLE " + TABLE_NAME + " ("
             + _ID + " INTEGER PRIMARY KEY NOT NULL,"
             + COLUMN_MAC + " TEXT UNIQUE NOT NULL,"
             + COLUMN_NAME + " TEXT NOT NULL)";
     static final String TABLE_DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 
+    private static final int DATABASE_VERSION = 1;
+    private static final String DATABASE_NAME = "WiFiAnalyzerDB.db";
 
-    public Database() {
-        super(MainContext.INSTANCE.getContext(), DATABASE_NAME, null, DATABASE_VERSION);
+
+    public Database(@NonNull Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
@@ -60,7 +61,7 @@ public class Database extends SQLiteOpenHelper implements BaseColumns {
         onCreate(db);
     }
 
-    long insert(String mac, String name) {
+    public long insert(String mac, String name) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = getContentValues();
         values.put(COLUMN_MAC, MacAddress.clean(mac));
@@ -68,11 +69,11 @@ public class Database extends SQLiteOpenHelper implements BaseColumns {
         return db.insert(TABLE_NAME, null, values);
     }
 
-    ContentValues getContentValues() {
+    public ContentValues getContentValues() {
         return new ContentValues();
     }
 
-    String find(String mac) {
+    public String find(String mac) {
         String result = null;
         SQLiteDatabase db = getReadableDatabase();
 
@@ -89,7 +90,7 @@ public class Database extends SQLiteOpenHelper implements BaseColumns {
         return result;
     }
 
-    List<VendorData> findAll() {
+    public List<VendorData> findAll() {
         List<VendorData> results = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.query(TABLE_NAME, ALL_COLUMNS, null, null, null, null, SORT_ORDER);

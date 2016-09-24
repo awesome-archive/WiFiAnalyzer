@@ -1,17 +1,19 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.scanner;
@@ -21,12 +23,14 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.support.annotation.NonNull;
 
+import com.vrem.wifianalyzer.wifi.band.WiFiWidth;
 import com.vrem.wifianalyzer.wifi.model.WiFiConnection;
 import com.vrem.wifianalyzer.wifi.model.WiFiData;
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail;
 import com.vrem.wifianalyzer.wifi.model.WiFiSignal;
 import com.vrem.wifianalyzer.wifi.model.WiFiUtils;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +39,6 @@ import java.util.TreeMap;
 
 public class Transformer {
 
-    static final String IP_ADDRESS = "192.168.1.1";
     final static String SSID_FORMAT = "SSID-%02d";
     private static int Count = 0;
     private final Map<String, String> cache = new TreeMap<>();
@@ -44,9 +47,11 @@ public class Transformer {
         if (wifiInfo == null || wifiInfo.getNetworkId() == -1) {
             return WiFiConnection.EMPTY;
         }
-        String demoSSID = getDemoSSID(WiFiUtils.convertSSID(wifiInfo.getSSID()));
-        String demoBSSID = getDemoBSSID(wifiInfo.getBSSID(), demoSSID);
-        return new WiFiConnection(demoSSID, demoBSSID, IP_ADDRESS);
+        return new WiFiConnection(
+            WiFiUtils.convertSSID(wifiInfo.getSSID()),
+            wifiInfo.getBSSID(),
+            WiFiUtils.convertIpAddress(wifiInfo.getIpAddress()),
+            wifiInfo.getLinkSpeed());
     }
 
     List<String> transformWifiConfigurations(List<WifiConfiguration> configuredNetworks) {
@@ -59,11 +64,12 @@ public class Transformer {
         return Collections.unmodifiableList(results);
     }
 
-    List<WiFiDetail> transformScanResults(List<ScanResult> scanResults) {
+    List<WiFiDetail> transformCacheResults(List<CacheResult> cacheResults) {
         List<WiFiDetail> results = new ArrayList<>();
-        if (scanResults != null) {
-            for (ScanResult scanResult : scanResults) {
-                WiFiSignal wiFiSignal = new WiFiSignal(scanResult.frequency, scanResult.level);
+        if (cacheResults != null) {
+            for (CacheResult cacheResult : cacheResults) {
+                ScanResult scanResult = cacheResult.getScanResult();
+                WiFiSignal wiFiSignal = new WiFiSignal(scanResult.frequency, getWiFiWidth(scanResult), cacheResult.getLevelAverage());
                 String demoSSID = getDemoSSID(scanResult.SSID);
                 String demoBSSID = getDemoBSSID(scanResult.BSSID, demoSSID);
                 WiFiDetail wiFiDetail = new WiFiDetail(demoSSID, demoBSSID, scanResult.capabilities, wiFiSignal);
@@ -73,11 +79,28 @@ public class Transformer {
         return Collections.unmodifiableList(results);
     }
 
-    public WiFiData transformToWiFiData(List<ScanResult> scanResults, WifiInfo wifiInfo, List<WifiConfiguration> configuredNetworks) {
-        List<WiFiDetail> wiFiDetails = transformScanResults(scanResults);
+    private WiFiWidth getWiFiWidth(ScanResult scanResult) {
+        try {
+            Field declaredField = scanResult.getClass().getDeclaredField(Fields.channelWidth.name());
+            return WiFiWidth.find((int) declaredField.get(scanResult));
+        } catch (Exception e) {
+            return WiFiWidth.MHZ_20;
+        }
+    }
+
+    public WiFiData transformToWiFiData(List<CacheResult> cacheResults, WifiInfo wifiInfo, List<WifiConfiguration> configuredNetworks) {
+        List<WiFiDetail> wiFiDetails = transformCacheResults(cacheResults);
         WiFiConnection wiFiConnection = transformWifiInfo(wifiInfo);
         List<String> wifiConfigurations = transformWifiConfigurations(configuredNetworks);
         return new WiFiData(wiFiDetails, wiFiConnection, wifiConfigurations);
+    }
+
+    private enum Fields {
+        /*
+                centerFreq0,
+                centerFreq1,
+        */
+        channelWidth
     }
 
     String getDemoSSID(@NonNull String SSID) {

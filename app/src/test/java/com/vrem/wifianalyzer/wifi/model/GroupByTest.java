@@ -1,20 +1,24 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.model;
+
+import com.vrem.wifianalyzer.wifi.band.WiFiWidth;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
@@ -29,9 +33,11 @@ public class GroupByTest {
     private WiFiDetail wiFiDetail2;
 
     @Before
-    public void setUp() throws Exception {
-        wiFiDetail1 = new WiFiDetail("SSID1", "BSSID1", StringUtils.EMPTY, new WiFiSignal(2465, -35), WiFiAdditional.EMPTY);
-        wiFiDetail2 = new WiFiDetail("SSID2", "BSSID2", StringUtils.EMPTY, new WiFiSignal(2435, -55), WiFiAdditional.EMPTY);
+    public void setUp() {
+        wiFiDetail1 = new WiFiDetail("SSID1", "BSSID1", StringUtils.EMPTY,
+            new WiFiSignal(2462, WiFiWidth.MHZ_20, -35), WiFiAdditional.EMPTY);
+        wiFiDetail2 = new WiFiDetail("SSID2", "BSSID2", StringUtils.EMPTY,
+            new WiFiSignal(2432, WiFiWidth.MHZ_20, -55), WiFiAdditional.EMPTY);
     }
 
 
@@ -42,18 +48,12 @@ public class GroupByTest {
 
     @Test
     public void testFind() throws Exception {
-        Assert.assertEquals(GroupBy.NONE, GroupBy.find(null));
-        assertEquals(GroupBy.NONE, GroupBy.find(""));
-        assertEquals(GroupBy.NONE, GroupBy.find("xYz"));
+        Assert.assertEquals(GroupBy.NONE, GroupBy.find(-1));
+        assertEquals(GroupBy.NONE, GroupBy.find(GroupBy.values().length));
 
-        assertEquals(GroupBy.NONE, GroupBy.find(GroupBy.NONE.name()));
-        assertEquals(GroupBy.NONE, GroupBy.find(GroupBy.NONE.name().toLowerCase()));
-
-        assertEquals(GroupBy.SSID, GroupBy.find(GroupBy.SSID.name()));
-        assertEquals(GroupBy.SSID, GroupBy.find(GroupBy.SSID.name().toLowerCase()));
-
-        assertEquals(GroupBy.CHANNEL, GroupBy.find(GroupBy.CHANNEL.name()));
-        assertEquals(GroupBy.CHANNEL, GroupBy.find(GroupBy.CHANNEL.name().toLowerCase()));
+        assertEquals(GroupBy.NONE, GroupBy.find(GroupBy.NONE.ordinal()));
+        assertEquals(GroupBy.SSID, GroupBy.find(GroupBy.SSID.ordinal()));
+        assertEquals(GroupBy.CHANNEL, GroupBy.find(GroupBy.CHANNEL.ordinal()));
     }
 
     @Test

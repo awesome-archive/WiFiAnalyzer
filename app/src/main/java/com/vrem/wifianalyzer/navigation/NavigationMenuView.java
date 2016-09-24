@@ -1,17 +1,19 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.navigation;
@@ -26,12 +28,13 @@ import com.vrem.wifianalyzer.R;
 
 public class NavigationMenuView {
     private final NavigationView navigationView;
+    private NavigationMenu currentNavigationMenu;
 
-    public NavigationMenuView(@NonNull Activity activity) {
+    public NavigationMenuView(@NonNull Activity activity, @NonNull NavigationMenu currentNavigationMenu) {
         navigationView = (NavigationView) activity.findViewById(R.id.nav_view);
 
         populateNavigationMenu();
-
+        setCurrentNavigationMenu(currentNavigationMenu);
         navigationView.setNavigationItemSelectedListener((NavigationView.OnNavigationItemSelectedListener) activity);
     }
 
@@ -45,24 +48,26 @@ public class NavigationMenuView {
         }
     }
 
-    public MenuItem defaultMenuItem() {
-        return navigationView.getMenu().getItem(NavigationMenu.ACCESS_POINTS.ordinal());
+    public MenuItem getCurrentMenuItem() {
+        return navigationView.getMenu().getItem(getCurrentNavigationMenu().ordinal());
     }
 
-    public NavigationMenu selectedMenuItem(int menuItemId) {
-        NavigationMenu result = NavigationMenu.find(menuItemId);
-        if (result.getFragment() != null) {
-            Menu menu = navigationView.getMenu();
-            for (int i = 0; i < menu.size(); i++) {
-                MenuItem item = menu.getItem(i);
-                item.setCheckable(menuItemId == i);
-                item.setChecked(menuItemId == i);
-            }
+    public NavigationMenu getCurrentNavigationMenu() {
+        return currentNavigationMenu;
+    }
+
+    public void setCurrentNavigationMenu(@NonNull NavigationMenu navigationMenu) {
+        this.currentNavigationMenu = navigationMenu;
+        Menu menu = navigationView.getMenu();
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem item = menu.getItem(i);
+            item.setCheckable(navigationMenu.ordinal() == i);
+            item.setChecked(navigationMenu.ordinal() == i);
         }
-        return result;
     }
 
     NavigationView getNavigationView() {
         return navigationView;
     }
+
 }

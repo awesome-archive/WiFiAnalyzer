@@ -1,17 +1,19 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.scanner;
@@ -21,10 +23,9 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 
+import com.vrem.wifianalyzer.Configuration;
 import com.vrem.wifianalyzer.Logger;
-import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.settings.Settings;
 import com.vrem.wifianalyzer.wifi.model.WiFiData;
 
@@ -36,7 +37,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -45,41 +45,51 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ScannerTest {
-    @Mock private Handler handler;
-    @Mock private Settings settings;
-    @Mock private WifiManager wifiManager;
-    @Mock private UpdateNotifier updateNotifier1;
-    @Mock private UpdateNotifier updateNotifier2;
-    @Mock private WifiInfo wifiInfo;
-    @Mock private Cache cache;
+    @Mock
+    private Handler handler;
+    @Mock
+    private Settings settings;
+    @Mock
+    private WifiManager wifiManager;
+    @Mock
+    private UpdateNotifier updateNotifier1;
+    @Mock
+    private UpdateNotifier updateNotifier2;
+    @Mock
+    private UpdateNotifier updateNotifier3;
+    @Mock
+    private WifiInfo wifiInfo;
+    @Mock
+    private Cache cache;
     @Mock
     private Transformer transformer;
-    @Mock private Logger logger;
+    @Mock
+    private Logger logger;
     @Mock
     private WiFiData wiFiData;
+    @Mock
+    private PeriodicScan periodicScan;
+    @Mock
+    private Configuration configuration;
 
     private List<ScanResult> scanResults;
-    private List<ScanResult> cachedScanResults;
+    private List<CacheResult> cacheResults;
     private List<WifiConfiguration> configuredNetworks;
 
     private Scanner fixture;
 
     @Before
-    public void setUp() throws Exception {
-        MainContext mainContext = MainContext.INSTANCE;
-        mainContext.setSettings(settings);
-        mainContext.setHandler(handler);
-        mainContext.setWifiManager(wifiManager);
-        mainContext.setLogger(logger);
-
+    public void setUp() {
         scanResults = new ArrayList<>();
-        cachedScanResults = new ArrayList<>();
+        cacheResults = new ArrayList<>();
         configuredNetworks = new ArrayList<>();
 
-        fixture = new Scanner();
+        fixture = new Scanner(wifiManager, handler, settings, transformer);
         fixture.setCache(cache);
-        fixture.setTransformer(transformer);
-        fixture.addUpdateNotifier(updateNotifier1);
+
+        fixture.register(updateNotifier1);
+        fixture.register(updateNotifier2);
+        fixture.register(updateNotifier3);
     }
 
     @Test
@@ -88,24 +98,23 @@ public class ScannerTest {
     }
 
     @Test
-    public void testAddUpdateNotifierAllowsOnlyOneNotifierPerClass() throws Exception {
-        Map<String, UpdateNotifier> updateNotifiers = fixture.getUpdateNotifiers();
-        assertEquals(1, updateNotifiers.size());
-        assertEquals(updateNotifier1, updateNotifiers.get(updateNotifier1.getClass().getName()));
+    public void testRegister() throws Exception {
+        // setup
+        assertEquals(3, fixture.getUpdateNotifiers().size());
+        // execute
+        fixture.register(updateNotifier2);
+        // validate
+        assertEquals(4, fixture.getUpdateNotifiers().size());
+    }
 
-        fixture.addUpdateNotifier(updateNotifier2);
-        assertEquals(1, updateNotifiers.size());
-        assertEquals(updateNotifier2, updateNotifiers.get(updateNotifier1.getClass().getName()));
-
-        UpdateNotifier myUpdateNotifier = new UpdateNotifier() {
-            @Override
-            public void update(@NonNull WiFiData wiFiData) {
-            }
-        };
-
-        fixture.addUpdateNotifier(myUpdateNotifier);
-        assertEquals(2, updateNotifiers.size());
-        assertEquals(myUpdateNotifier, updateNotifiers.get(myUpdateNotifier.getClass().getName()));
+    @Test
+    public void testUnregister() throws Exception {
+        // setup
+        assertEquals(3, fixture.getUpdateNotifiers().size());
+        // execute
+        fixture.unregister(updateNotifier2);
+        // validate
+        assertEquals(2, fixture.getUpdateNotifiers().size());
     }
 
     @Test
@@ -121,6 +130,8 @@ public class ScannerTest {
         verifyTransfomer();
         verifyWiFiManager();
         verify(updateNotifier1).update(wiFiData);
+        verify(updateNotifier2).update(wiFiData);
+        verify(updateNotifier3).update(wiFiData);
     }
 
     @Test
@@ -146,11 +157,11 @@ public class ScannerTest {
     }
 
     private void withCache() {
-        when(cache.getScanResults()).thenReturn(cachedScanResults);
+        when(cache.getScanResults()).thenReturn(cacheResults);
     }
 
     private void withTransformer() {
-        when(transformer.transformToWiFiData(cachedScanResults, wifiInfo, configuredNetworks)).thenReturn(wiFiData);
+        when(transformer.transformToWiFiData(cacheResults, wifiInfo, configuredNetworks)).thenReturn(wiFiData);
     }
 
     private void verifyCache() {
@@ -176,6 +187,27 @@ public class ScannerTest {
     }
 
     private void verifyTransfomer() {
-        verify(transformer).transformToWiFiData(cachedScanResults, wifiInfo, configuredNetworks);
+        verify(transformer).transformToWiFiData(cacheResults, wifiInfo, configuredNetworks);
     }
+
+    @Test
+    public void testPause() throws Exception {
+        // setup
+        fixture.setPeriodicScan(periodicScan);
+        // execute
+        fixture.pause();
+        // validate
+        verify(periodicScan).stop();
+    }
+
+    @Test
+    public void testResume() throws Exception {
+        // setup
+        fixture.setPeriodicScan(periodicScan);
+        // execute
+        fixture.resume();
+        // validate
+        verify(periodicScan).start();
+    }
+
 }

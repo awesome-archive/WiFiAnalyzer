@@ -1,17 +1,19 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.model;
@@ -19,11 +21,11 @@ package com.vrem.wifianalyzer.wifi.model;
 import com.vrem.wifianalyzer.R;
 
 public enum Strength {
-    ZERO(R.drawable.ic_signal_wifi_0_bar_black_48dp, R.color.error_color),
-    ONE(R.drawable.ic_signal_wifi_1_bar_black_48dp, R.color.warning_color),
-    TWO(R.drawable.ic_signal_wifi_2_bar_black_48dp, R.color.warning_color),
-    THREE(R.drawable.ic_signal_wifi_3_bar_black_48dp, R.color.success_color),
-    FOUR(R.drawable.ic_signal_wifi_4_bar_black_48dp, R.color.success_color);
+    ZERO(R.drawable.ic_signal_wifi_0_bar_black_36dp, R.color.error_color),
+    ONE(R.drawable.ic_signal_wifi_1_bar_black_36dp, R.color.warning_color),
+    TWO(R.drawable.ic_signal_wifi_2_bar_black_36dp, R.color.warning_color),
+    THREE(R.drawable.ic_signal_wifi_3_bar_black_36dp, R.color.success_color),
+    FOUR(R.drawable.ic_signal_wifi_4_bar_black_36dp, R.color.success_color);
 
     private final int imageResource;
     private final int colorResource;
@@ -34,11 +36,13 @@ public enum Strength {
     }
 
     public static Strength calculate(int level) {
-        return Strength.values()[WiFiUtils.calculateSignalLevel(level, values().length)];
+        int index = WiFiUtils.calculateSignalLevel(level, values().length);
+        return Strength.values()[index];
     }
 
     public static Strength reverse(Strength strength) {
-        return Strength.values()[Strength.values().length - strength.ordinal() - 1];
+        int index = Strength.values().length - strength.ordinal() - 1;
+        return Strength.values()[index];
     }
 
     public int colorResource() {

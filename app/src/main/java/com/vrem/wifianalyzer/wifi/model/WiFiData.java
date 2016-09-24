@@ -1,17 +1,19 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.model;
@@ -20,6 +22,7 @@ import android.support.annotation.NonNull;
 
 import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.vendor.model.VendorService;
+import com.vrem.wifianalyzer.wifi.band.WiFiBand;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,22 +32,22 @@ public class WiFiData {
     private final List<WiFiDetail> wiFiDetails;
     private final WiFiConnection wiFiConnection;
     private final List<String> wiFiConfigurations;
-    private final VendorService vendorService;
 
     public WiFiData(@NonNull List<WiFiDetail> wiFiDetails, @NonNull WiFiConnection wiFiConnection, @NonNull List<String> wiFiConfigurations) {
         this.wiFiDetails = wiFiDetails;
         this.wiFiConnection = wiFiConnection;
         this.wiFiConfigurations = wiFiConfigurations;
-        this.vendorService = MainContext.INSTANCE.getVendorService();
     }
 
     @NonNull
     public WiFiDetail getConnection() {
+        VendorService vendorService = MainContext.INSTANCE.getVendorService();
         for (WiFiDetail wiFiDetail : wiFiDetails) {
-            if (wiFiConnection.equals(new WiFiConnection(wiFiDetail.getSSID(), wiFiDetail.getBSSID()))) {
-                String ipAddress = wiFiConnection.getIpAddress();
+            WiFiConnection connection = new WiFiConnection(wiFiDetail.getSSID(), wiFiDetail.getBSSID());
+            if (wiFiConnection.equals(connection)) {
                 String vendorName = vendorService.findVendorName(wiFiDetail.getBSSID());
-                return new WiFiDetail(wiFiDetail, new WiFiAdditional(vendorName, ipAddress));
+                WiFiAdditional wiFiAdditional = new WiFiAdditional(vendorName, wiFiConnection.getIpAddress(), wiFiConnection.getLinkSpeed());
+                return new WiFiDetail(wiFiDetail, wiFiAdditional);
             }
         }
         return WiFiDetail.EMPTY;
@@ -89,9 +92,10 @@ public class WiFiData {
     }
 
     @NonNull
-    List<WiFiDetail> getWiFiDetails(@NonNull WiFiBand wiFiBand) {
+    private List<WiFiDetail> getWiFiDetails(@NonNull WiFiBand wiFiBand) {
         List<WiFiDetail> results = new ArrayList<>();
         WiFiDetail connection = getConnection();
+        VendorService vendorService = MainContext.INSTANCE.getVendorService();
         for (WiFiDetail wiFiDetail : wiFiDetails) {
             if (wiFiDetail.getWiFiSignal().getWiFiBand().equals(wiFiBand)) {
                 if (wiFiDetail.equals(connection)) {
@@ -121,4 +125,5 @@ public class WiFiData {
     public WiFiConnection getWiFiConnection() {
         return wiFiConnection;
     }
+
 }

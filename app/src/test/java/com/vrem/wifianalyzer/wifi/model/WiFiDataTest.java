@@ -1,31 +1,35 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.model;
 
 import android.support.annotation.NonNull;
 
-import com.vrem.wifianalyzer.MainContext;
+import com.vrem.wifianalyzer.MainContextHelper;
 import com.vrem.wifianalyzer.vendor.model.VendorService;
+import com.vrem.wifianalyzer.wifi.band.WiFiBand;
+import com.vrem.wifianalyzer.wifi.band.WiFiWidth;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
@@ -42,8 +46,9 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WiFiDataTest {
-    public static final String IP_ADDRESS = "21.205.91.7";
+    private static final String IP_ADDRESS = "21.205.91.7";
     private static final String VENDOR_NAME = "VendorName+";
+    private static final int LINK_SPEED = 21;
     private static final String SSID_1 = "SSID1";
     private static final String SSID_2 = "SSID2";
     private static final String SSID_3 = "SSID3";
@@ -59,28 +64,19 @@ public class WiFiDataTest {
     private static final int LEVEL0 = -5;
     private static final int LEVEL1 = -4;
     private static final int LEVEL2 = -3;
-    @Mock
+
     private VendorService vendorService;
-
     private WiFiConnection wiFiConnection;
-    private WiFiDetail wiFiDetail1;
-    private WiFiDetail wiFiDetail2;
-    private WiFiDetail wiFiDetail3;
-    private WiFiDetail wiFiDetail4;
-    private WiFiDetail wiFiDetail_1;
-    private WiFiDetail wiFiDetail_2;
-    private WiFiDetail wiFiDetail_3;
-
     private List<WiFiDetail> wiFiDetails;
     private List<String> wiFiConfigurations;
     private WiFiData fixture;
 
     @Before
-    public void setUp() throws Exception {
-        MainContext.INSTANCE.setVendorService(vendorService);
+    public void setUp() {
+        vendorService = MainContextHelper.INSTANCE.getVendorService();
 
         wiFiDetails = withWiFiDetails();
-        wiFiConnection = new WiFiConnection(SSID_1, BSSID_1, IP_ADDRESS);
+        wiFiConnection = new WiFiConnection(SSID_1, BSSID_1, IP_ADDRESS, LINK_SPEED);
         wiFiConfigurations = Arrays.asList(SSID_3, "123-456-789");
 
         withVendorNames();
@@ -88,15 +84,20 @@ public class WiFiDataTest {
         fixture = new WiFiData(wiFiDetails, wiFiConnection, wiFiConfigurations);
     }
 
-    private List<WiFiDetail> withWiFiDetails() {
-        wiFiDetail1 = new WiFiDetail(SSID_1, BSSID_1, StringUtils.EMPTY, new WiFiSignal(FREQUENCY1, LEVEL1));
-        wiFiDetail2 = new WiFiDetail(SSID_2, BSSID_2, StringUtils.EMPTY, new WiFiSignal(FREQUENCY2, LEVEL2));
-        wiFiDetail3 = new WiFiDetail(SSID_3, BSSID_3, StringUtils.EMPTY, new WiFiSignal(FREQUENCY3, LEVEL0));
-        wiFiDetail4 = new WiFiDetail(SSID_4, BSSID_4, StringUtils.EMPTY, new WiFiSignal(FREQUENCY4, LEVEL2));
+    @After
+    public void tearDown() {
+        MainContextHelper.INSTANCE.restore();
+    }
 
-        wiFiDetail_1 = new WiFiDetail(SSID_2, BSSID_2 + "_1", StringUtils.EMPTY, new WiFiSignal(FREQUENCY2, LEVEL2 - 3));
-        wiFiDetail_2 = new WiFiDetail(SSID_2, BSSID_2 + "_2", StringUtils.EMPTY, new WiFiSignal(FREQUENCY2, LEVEL2 - 1));
-        wiFiDetail_3 = new WiFiDetail(SSID_2, BSSID_2 + "_3", StringUtils.EMPTY, new WiFiSignal(FREQUENCY2, LEVEL2 - 2));
+    private List<WiFiDetail> withWiFiDetails() {
+        WiFiDetail wiFiDetail1 = new WiFiDetail(SSID_1, BSSID_1, StringUtils.EMPTY, new WiFiSignal(FREQUENCY1, WiFiWidth.MHZ_20, LEVEL1));
+        WiFiDetail wiFiDetail2 = new WiFiDetail(SSID_2, BSSID_2, StringUtils.EMPTY, new WiFiSignal(FREQUENCY2, WiFiWidth.MHZ_20, LEVEL2));
+        WiFiDetail wiFiDetail3 = new WiFiDetail(SSID_3, BSSID_3, StringUtils.EMPTY, new WiFiSignal(FREQUENCY3, WiFiWidth.MHZ_20, LEVEL0));
+        WiFiDetail wiFiDetail4 = new WiFiDetail(SSID_4, BSSID_4, StringUtils.EMPTY, new WiFiSignal(FREQUENCY4, WiFiWidth.MHZ_20, LEVEL2));
+
+        WiFiDetail wiFiDetail_1 = new WiFiDetail(SSID_2, BSSID_2 + "_1", StringUtils.EMPTY, new WiFiSignal(FREQUENCY2, WiFiWidth.MHZ_20, LEVEL2 - 3));
+        WiFiDetail wiFiDetail_2 = new WiFiDetail(SSID_2, BSSID_2 + "_2", StringUtils.EMPTY, new WiFiSignal(FREQUENCY2, WiFiWidth.MHZ_20, LEVEL2 - 1));
+        WiFiDetail wiFiDetail_3 = new WiFiDetail(SSID_2, BSSID_2 + "_3", StringUtils.EMPTY, new WiFiSignal(FREQUENCY2, WiFiWidth.MHZ_20, LEVEL2 - 2));
 
         return Arrays.asList(wiFiDetail_3, wiFiDetail3, wiFiDetail_2, wiFiDetail1, wiFiDetail_1, wiFiDetail2, wiFiDetail4);
     }
@@ -110,7 +111,7 @@ public class WiFiDataTest {
     @Test
     public void testGetWiFiDetailsWithSSID() throws Exception {
         // execute
-        List<WiFiDetail> actual = fixture.getWiFiDetails(WiFiBand.GHZ_2, SortBy.STRENGTH, GroupBy.SSID);
+        List<WiFiDetail> actual = fixture.getWiFiDetails(WiFiBand.GHZ2, SortBy.STRENGTH, GroupBy.SSID);
         // validate
         assertEquals(4, actual.size());
         assertEquals(SSID_2, actual.get(0).getSSID());
@@ -122,7 +123,7 @@ public class WiFiDataTest {
     @Test
     public void testGetWiFiDetailsWithVendorName() throws Exception {
         // execute
-        List<WiFiDetail> actual = fixture.getWiFiDetails(WiFiBand.GHZ_2, SortBy.STRENGTH, GroupBy.SSID);
+        List<WiFiDetail> actual = fixture.getWiFiDetails(WiFiBand.GHZ2, SortBy.STRENGTH, GroupBy.SSID);
         // validate
         assertEquals(VENDOR_NAME + BSSID_2, actual.get(0).getWiFiAdditional().getVendorName());
         assertEquals(VENDOR_NAME + BSSID_4, actual.get(1).getWiFiAdditional().getVendorName());
@@ -135,7 +136,7 @@ public class WiFiDataTest {
     @Test
     public void testGetWiFiDetailsWithChildren() throws Exception {
         // execute
-        List<WiFiDetail> actual = fixture.getWiFiDetails(WiFiBand.GHZ_2, SortBy.STRENGTH, GroupBy.SSID);
+        List<WiFiDetail> actual = fixture.getWiFiDetails(WiFiBand.GHZ2, SortBy.STRENGTH, GroupBy.SSID);
         // validate
         WiFiDetail wiFiDetail = actual.get(0);
         List<WiFiDetail> children = wiFiDetail.getChildren();
@@ -158,7 +159,7 @@ public class WiFiDataTest {
     @Test
     public void testIsConfiguredNetwork() throws Exception {
         // execute
-        List<WiFiDetail> actual = fixture.getWiFiDetails(WiFiBand.GHZ_2, SortBy.STRENGTH, GroupBy.SSID);
+        List<WiFiDetail> actual = fixture.getWiFiDetails(WiFiBand.GHZ2, SortBy.STRENGTH, GroupBy.SSID);
         // validate
         assertEquals(4, actual.size());
 
@@ -177,13 +178,13 @@ public class WiFiDataTest {
         fixture = new WiFiData(wiFiDetails, wiFiConnection, wiFiConfigurations) {
             @NonNull
             @Override
-            List<WiFiDetail> getWiFiDetails(@NonNull List<WiFiDetail> wiFiDetails, @NonNull SortBy sortBy, @NonNull GroupBy groupBy) {
+            protected List<WiFiDetail> getWiFiDetails(@NonNull List<WiFiDetail> wiFiDetails, @NonNull SortBy sortBy, @NonNull GroupBy groupBy) {
                 fail("Should not apply grouping");
                 return null;
             }
         };
         // execute
-        List<WiFiDetail> actual = fixture.getWiFiDetails(WiFiBand.GHZ_2, SortBy.SSID);
+        List<WiFiDetail> actual = fixture.getWiFiDetails(WiFiBand.GHZ2, SortBy.SSID);
         // validate
         assertEquals(7, actual.size());
         assertEquals(BSSID_1, actual.get(0).getBSSID());

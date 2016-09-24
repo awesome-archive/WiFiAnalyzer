@@ -1,17 +1,19 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.vendor;
@@ -25,17 +27,17 @@ import android.view.ViewGroup;
 
 import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.R;
+import com.vrem.wifianalyzer.vendor.model.VendorService;
 
 public class VendorFragment extends ListFragment {
-
-    private final MainContext mainContext = MainContext.INSTANCE;
     private VendorAdapter vendorAdapter;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.vendor_content, container, false);
-        vendorAdapter = new VendorAdapter(getActivity(), mainContext.getVendorService().findAll());
+        VendorService vendorService = MainContext.INSTANCE.getVendorService();
+        vendorAdapter = new VendorAdapter(getActivity(), vendorService.findAll());
         setListAdapter(vendorAdapter);
         return view;
     }
@@ -43,6 +45,8 @@ public class VendorFragment extends ListFragment {
     @Override
     public void onResume() {
         super.onResume();
-        vendorAdapter.setVendors(mainContext.getVendorService().findAll());
+        VendorService vendorService = MainContext.INSTANCE.getVendorService();
+        vendorAdapter.setVendors(vendorService.findAll());
     }
+
 }

@@ -1,17 +1,19 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.scanner;
@@ -51,6 +53,7 @@ public class TransformerTest {
     private static final int FREQUENCY = 2435;
     private static final int LEVEL = -40;
     private static final String IP_ADDRESS = "21.205.91.7";
+    private static final int LINK_SPEED = 21;
 
     @Mock
     private WifiInfo wifiInfo;
@@ -67,21 +70,19 @@ public class TransformerTest {
     @Mock
     private ScanResult scanResult3;
 
-    private List<ScanResult> scanResults;
+    private List<CacheResult> cacheResults;
     private List<WifiConfiguration> wifiConfigurations;
     private Transformer fixture;
 
     @Before
-    public void setUp() throws Exception {
-        scanResults = Arrays.asList(scanResult1, scanResult2, scanResult3);
+    public void setUp() {
         wifiConfigurations = Arrays.asList(wifiConfiguration1, wifiConfiguration2, wifiConfiguration3);
-
         fixture = new Transformer();
     }
 
     @Test
     public void testTransformWithNulls() throws Exception {
-        assertTrue(fixture.transformScanResults(null).isEmpty());
+        assertTrue(fixture.transformCacheResults(null).isEmpty());
         assertEquals(WiFiConnection.EMPTY, fixture.transformWifiInfo(null));
         assertTrue(fixture.transformWifiConfigurations(null).isEmpty());
     }
@@ -93,13 +94,15 @@ public class TransformerTest {
         // execute
         WiFiConnection actual = fixture.transformWifiInfo(wifiInfo);
         // validate
-        assertEquals(fixture.getDemoSSID(SSID_1), actual.getSSID());
+        assertEquals(SSID_1, actual.getSSID());
         assertEquals(BSSID_1, actual.getBSSID());
-        assertEquals(Transformer.IP_ADDRESS, actual.getIpAddress());
+        assertEquals(IP_ADDRESS, actual.getIpAddress());
+        assertEquals(LINK_SPEED, actual.getLinkSpeed());
 
         verify(wifiInfo).getNetworkId();
         verify(wifiInfo).getSSID();
         verify(wifiInfo).getBSSID();
+        verify(wifiInfo).getIpAddress();
     }
 
     @Test
@@ -125,14 +128,17 @@ public class TransformerTest {
     @Test
     public void testTransformScanResults() throws Exception {
         // setup
-        withScanResult();
+        withCacheResults();
         // execute
-        List<WiFiDetail> actual = fixture.transformScanResults(scanResults);
+        List<WiFiDetail> actual = fixture.transformCacheResults(cacheResults);
         // validate
-        assertEquals(scanResults.size(), actual.size());
-        validateWiFiDetail(fixture.getDemoSSID(SSID_1), BSSID_1, actual.get(0));
-        validateWiFiDetail(fixture.getDemoSSID(SSID_2), BSSID_2, actual.get(1));
-        validateWiFiDetail(fixture.getDemoSSID(SSID_3), BSSID_3, actual.get(2));
+        assertEquals(cacheResults.size(), actual.size());
+        String demoSSID1 = fixture.getDemoSSID(SSID_1);
+        validateWiFiDetail(demoSSID1, fixture.getDemoBSSID(BSSID_1, demoSSID1), actual.get(0));
+        String demoSSID2 = fixture.getDemoSSID(SSID_2);
+        validateWiFiDetail(demoSSID2, fixture.getDemoBSSID(BSSID_2, demoSSID2), actual.get(1));
+        String demoSSID3 = fixture.getDemoSSID(SSID_3);
+        validateWiFiDetail(demoSSID3, fixture.getDemoBSSID(BSSID_3, demoSSID3), actual.get(2));
     }
 
     private void validateWiFiDetail(String SSID, String BSSID, WiFiDetail wiFiDetail) {
@@ -147,19 +153,19 @@ public class TransformerTest {
     @Test
     public void testWiFiData() throws Exception {
         // setup
-        WiFiConnection expectedWiFiConnection = new WiFiConnection(fixture.getDemoSSID(SSID_1), BSSID_1);
-        withScanResult();
+        WiFiConnection expectedWiFiConnection = new WiFiConnection(SSID_1, BSSID_1);
+        withCacheResults();
         withWiFiConfiguration();
         withWiFiInfo();
         // execute
-        WiFiData actual = fixture.transformToWiFiData(scanResults, wifiInfo, wifiConfigurations);
+        WiFiData actual = fixture.transformToWiFiData(cacheResults, wifiInfo, wifiConfigurations);
         // validate
         assertEquals(expectedWiFiConnection, actual.getWiFiConnection());
-        assertEquals(scanResults.size(), actual.getWiFiDetails().size());
+        assertEquals(cacheResults.size(), actual.getWiFiDetails().size());
         assertEquals(wifiConfigurations.size(), actual.getWiFiConfigurations().size());
     }
 
-    private void withScanResult() {
+    private void withCacheResults() {
         scanResult1.SSID = SSID_1;
         scanResult1.BSSID = BSSID_1;
         scanResult1.capabilities = WPA;
@@ -177,6 +183,11 @@ public class TransformerTest {
         scanResult3.capabilities = WPA;
         scanResult3.frequency = FREQUENCY;
         scanResult3.level = LEVEL;
+
+        cacheResults = Arrays.asList(
+            new CacheResult(scanResult1, scanResult1.level),
+            new CacheResult(scanResult2, scanResult2.level),
+            new CacheResult(scanResult3, scanResult2.level));
     }
 
     private void withWiFiConfiguration() {
@@ -190,7 +201,7 @@ public class TransformerTest {
         when(wifiInfo.getSSID()).thenReturn(SSID_1);
         when(wifiInfo.getBSSID()).thenReturn(BSSID_1);
         when(wifiInfo.getIpAddress()).thenReturn(123456789);
+        when(wifiInfo.getLinkSpeed()).thenReturn(LINK_SPEED);
     }
-
 
 }

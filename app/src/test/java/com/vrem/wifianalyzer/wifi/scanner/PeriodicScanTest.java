@@ -1,24 +1,25 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.scanner;
 
 import android.os.Handler;
 
-import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.settings.Settings;
 
 import org.junit.Before;
@@ -40,12 +41,8 @@ public class PeriodicScanTest {
     private PeriodicScan fixture;
 
     @Before
-    public void setUp() throws Exception {
-        MainContext mainContext = MainContext.INSTANCE;
-        mainContext.setSettings(settings);
-        mainContext.setHandler(handler);
-
-        fixture = new PeriodicScan(scanner);
+    public void setUp() {
+        fixture = new PeriodicScan(scanner, handler, settings);
     }
 
     @Test
@@ -66,6 +63,23 @@ public class PeriodicScanTest {
         verify(scanner).update();
         verify(handler, times(2)).removeCallbacks(fixture);
         verify(handler).postDelayed(fixture, scanInterval * PeriodicScan.DELAY_INTERVAL);
+    }
+
+    @Test
+    public void testStop() throws Exception {
+        // execute
+        fixture.stop();
+        // validate
+        verify(handler, times(2)).removeCallbacks(fixture);
+    }
+
+    @Test
+    public void testStart() throws Exception {
+        // execute
+        fixture.start();
+        // validate
+        verify(handler, times(2)).removeCallbacks(fixture);
+        verify(handler, times(2)).postDelayed(fixture, PeriodicScan.DELAY_INITIAL);
     }
 
 }

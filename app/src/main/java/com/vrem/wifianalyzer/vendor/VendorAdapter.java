@@ -1,17 +1,19 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.vendor;
@@ -32,8 +34,6 @@ import java.util.List;
 import java.util.SortedMap;
 
 class VendorAdapter extends ArrayAdapter<String> {
-
-    private final MainContext mainContext = MainContext.INSTANCE;
     private SortedMap<String, List<String>> vendors;
 
     VendorAdapter(@NonNull Context context, @NonNull SortedMap<String, List<String>> vendors) {
@@ -43,12 +43,13 @@ class VendorAdapter extends ArrayAdapter<String> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        LayoutInflater inflater = mainContext.getLayoutInflater();
-        if (convertView == null) {
-            convertView = inflater.inflate(R.layout.vendor_details, parent, false);
+        View view = convertView;
+        if (view == null) {
+            LayoutInflater layoutInflater = MainContext.INSTANCE.getLayoutInflater();
+            view = layoutInflater.inflate(R.layout.vendor_details, parent, false);
         }
         String name = getItem(position);
-        ((TextView) convertView.findViewById(R.id.vendor_name)).setText(name);
+        ((TextView) view.findViewById(R.id.vendor_name)).setText(name);
 
         StringBuilder stringBuilder = new StringBuilder();
         for (String mac : vendors.get(name)) {
@@ -61,8 +62,8 @@ class VendorAdapter extends ArrayAdapter<String> {
                             : String.format("%s:%s:%s", mac.substring(0, 2), mac.substring(2, 4), mac.substring(4, 6));
             stringBuilder.append(macAddress);
         }
-        ((TextView) convertView.findViewById(R.id.vendor_macs)).setText(stringBuilder.toString());
-        return convertView;
+        ((TextView) view.findViewById(R.id.vendor_macs)).setText(stringBuilder.toString());
+        return view;
     }
 
     SortedMap<String, List<String>> getVendors() {

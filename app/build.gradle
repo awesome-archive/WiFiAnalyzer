@@ -1,24 +1,27 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 apply plugin: 'com.android.application'
+apply plugin: 'jacoco-android'
 
 android {
     compileSdkVersion 22
-    buildToolsVersion "23.0.2"
+    buildToolsVersion "23.0.3"
 
     defaultConfig {
         applicationId "com.vrem.wifianalyzer.DEMO"
@@ -36,6 +39,15 @@ android {
         }
         debug {
             debuggable true
+            testCoverageEnabled true
+        }
+    }
+
+    testOptions {
+        unitTests.all {
+            jacoco {
+                includeNoLocationClasses true
+            }
         }
     }
 
@@ -43,6 +55,17 @@ android {
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
     }
+}
+
+jacoco {
+    toolVersion "0.7.7.201606060606"
+}
+
+jacocoAndroidUnitTestReport {
+    excludes += ['**/com/jjoe64/*']
+    html.enabled true
+    xml.enabled true
+    csv.enabled false
 }
 
 if (project.hasProperty('keyAlias')) {
@@ -58,17 +81,18 @@ if (project.hasProperty('keyAlias')) {
 
 dependencies {
     // Compile Build Dependencies
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:22.2.1'
     compile 'com.android.support:design:22.2.1'
     compile 'org.apache.commons:commons-lang3:3.4'
-    compile 'com.jjoe64:graphview:4.0.1'
+    compile 'com.jjoe64:graphview:4.1.1'
     // Unit Test Dependencies
     testCompile 'junit:junit:4.12'
-    testCompile 'org.powermock:powermock-module-junit4:1.6.4'
-    testCompile 'org.powermock:powermock-api-mockito:1.6.4'
+    testCompile 'org.powermock:powermock-module-junit4:1.6.5'
+    testCompile 'org.powermock:powermock-api-mockito:1.6.5'
     testCompile 'com.googlecode.junit-toolbox:junit-toolbox:2.2'
-    testCompile 'org.robolectric:robolectric:3.1-SNAPSHOT'
+    testCompile 'org.robolectric:robolectric:3.1.2'
+    testCompile 'org.robolectric:shadows-support-v4:3.1.2'
 }
 
 updateVersion()
@@ -83,25 +107,39 @@ def updateVersion() {
     def versionBuild = properties['version_build'].toString().toInteger()
     def versionStore = properties['version_store'].toString().toInteger()
 
-    if (isReleaseBuild()) {
-        System.out.println(">>> Building Release Version...")
+    if (isReleaseTask()) {
+        System.out.println(">>> Building Release...")
         versionPatch++
         versionStore++
+        versionBuild = 0
         properties['version_patch'] = versionPatch.toString()
         properties['version_store'] = versionStore.toString()
+        properties['version_build'] = versionBuild.toString()
+        writeProperties(propertiesFile, properties)
     }
-    versionBuild++
-    properties['version_build'] = versionBuild.toString()
+    if (isCompileTask()) {
+        System.out.println(">>> Compiling Source...")
+        versionBuild++
+        properties['version_build'] = versionBuild.toString()
+        writeProperties(propertiesFile, properties)
+    }
 
-    writeProperties(propertiesFile, properties)
-
-    def versionName = "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}"
-    System.out.println(">>> " + project.parent.name + " Version Name: " + versionName + " Code: " + versionStore)
+    def versionName = "${versionMajor}.${versionMinor}.${versionPatch}"
+    if (android.defaultConfig.applicationId.endsWith(".BETA")) {
+        versionName = versionName + ".${versionBuild}"
+    }
+    System.out.println(">>> " + project.parent.name + " " + versionName + " (" + versionStore + ") '" + android.defaultConfig.applicationId + "'")
     android.defaultConfig.versionCode = versionStore
     android.defaultConfig.versionName = versionName
 }
 
-def isReleaseBuild() {
+def isCompileTask() {
+    def tasks = gradle.getStartParameter().getTaskNames()
+    return ':app:generateDebugSources' in tasks || ':app:generateReleaseSources' in tasks ||
+            'generateDebugSources' in tasks || 'generateReleaseSources' in tasks
+}
+
+def isReleaseTask() {
     def tasks = gradle.getStartParameter().getTaskNames()
     return ':app:assembleRelease' in tasks || 'assembleRelease' in tasks
 }

@@ -1,25 +1,26 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+  ~ WiFi Analyzer
+  ~ Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
   ~
-  ~    Licensed under the Apache License, Version 2.0 (the "License");
-  ~    you may not use this file except in compliance with the License.
-  ~    You may obtain a copy of the License at
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
   ~
-  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
   ~
-  ~    Unless required by applicable law or agreed to in writing, software
-  ~    distributed under the License is distributed on an "AS IS" BASIS,
-  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~    See the License for the specific language governing permissions and
-  ~    limitations under the License.
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>
   -->
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <ListPreference
         android:defaultValue="@string/wifi_band_default"
         android:entries="@array/wifi_band_array"
-        android:entryValues="@array/wifi_band_array"
+        android:entryValues="@array/wifi_band_index_array"
         android:key="@string/wifi_band_key"
         android:persistent="true"
         android:summary="@string/wifi_band_summary"
@@ -35,7 +36,7 @@
     <ListPreference
         android:defaultValue="@string/sort_by_default"
         android:entries="@array/sort_by_array"
-        android:entryValues="@array/sort_by_array"
+        android:entryValues="@array/sort_by_index_array"
         android:key="@string/sort_by_key"
         android:persistent="true"
         android:summary="@string/sort_by_summary"
@@ -44,7 +45,7 @@
     <ListPreference
         android:defaultValue="@string/group_by_default"
         android:entries="@array/group_by_array"
-        android:entryValues="@array/group_by_array"
+        android:entryValues="@array/group_by_index_array"
         android:key="@string/group_by_key"
         android:persistent="true"
         android:summary="@string/group_by_summary"
@@ -53,7 +54,7 @@
     <ListPreference
         android:defaultValue="@string/channel_graph_legend_default"
         android:entries="@array/graph_legend_array"
-        android:entryValues="@array/graph_legend_array"
+        android:entryValues="@array/graph_legend_index_array"
         android:key="@string/channel_graph_legend_key"
         android:persistent="true"
         android:summary="@string/channel_graph_legend_summary"
@@ -62,7 +63,7 @@
     <ListPreference
         android:defaultValue="@string/time_graph_legend_default"
         android:entries="@array/graph_legend_array"
-        android:entryValues="@array/graph_legend_array"
+        android:entryValues="@array/graph_legend_index_array"
         android:key="@string/time_graph_legend_key"
         android:persistent="true"
         android:summary="@string/time_graph_legend_summary"
@@ -71,9 +72,22 @@
     <ListPreference
         android:defaultValue="@string/theme_default"
         android:entries="@array/theme_array"
-        android:entryValues="@array/theme_array"
+        android:entryValues="@array/theme_index_array"
         android:key="@string/theme_key"
         android:persistent="true"
         android:summary="@string/theme_summary"
         android:title="@string/theme_title" />
+
+    <com.vrem.wifianalyzer.settings.StartMenuPreference
+        android:key="@string/start_menu_key"
+        android:persistent="true"
+        android:summary="@string/start_menu_summary"
+        android:title="@string/start_menu_title"/>
+
+    <com.vrem.wifianalyzer.settings.CountryPreference
+        android:key="@string/country_code_key"
+        android:persistent="true"
+        android:summary="@string/country_code_summary"
+        android:title="@string/country_code_title"/>
+
 </PreferenceScreen>

@@ -1,20 +1,24 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.model;
+
+import com.vrem.wifianalyzer.wifi.band.WiFiWidth;
 
 import org.junit.Test;
 
@@ -33,7 +37,7 @@ public class WiFiWidthTest {
         assertEquals(40, WiFiWidth.MHZ_40.getFrequencyWidth());
         assertEquals(80, WiFiWidth.MHZ_80.getFrequencyWidth());
         assertEquals(160, WiFiWidth.MHZ_160.getFrequencyWidth());
-        assertEquals(160, WiFiWidth.MHZ_80_80.getFrequencyWidth());
+        assertEquals(80, WiFiWidth.MHZ_80_PLUS.getFrequencyWidth());
     }
 
     @Test
@@ -42,25 +46,16 @@ public class WiFiWidthTest {
         assertEquals(20, WiFiWidth.MHZ_40.getFrequencyWidthHalf());
         assertEquals(40, WiFiWidth.MHZ_80.getFrequencyWidthHalf());
         assertEquals(80, WiFiWidth.MHZ_160.getFrequencyWidthHalf());
-        assertEquals(80, WiFiWidth.MHZ_80_80.getFrequencyWidthHalf());
+        assertEquals(40, WiFiWidth.MHZ_80_PLUS.getFrequencyWidthHalf());
     }
 
     @Test
-    public void testGetChannelWidth() throws Exception {
-        assertEquals(4, WiFiWidth.MHZ_20.getChannelWidth());
-        assertEquals(8, WiFiWidth.MHZ_40.getChannelWidth());
-        assertEquals(16, WiFiWidth.MHZ_80.getChannelWidth());
-        assertEquals(32, WiFiWidth.MHZ_160.getChannelWidth());
-        assertEquals(32, WiFiWidth.MHZ_80_80.getChannelWidth());
-    }
-
-    @Test
-    public void testGetChannelHalfWidth() throws Exception {
-        assertEquals(2, WiFiWidth.MHZ_20.getChannelWidthHalf());
-        assertEquals(4, WiFiWidth.MHZ_40.getChannelWidthHalf());
-        assertEquals(8, WiFiWidth.MHZ_80.getChannelWidthHalf());
-        assertEquals(16, WiFiWidth.MHZ_160.getChannelWidthHalf());
-        assertEquals(16, WiFiWidth.MHZ_80_80.getChannelWidthHalf());
+    public void testFind() throws Exception {
+        for (WiFiWidth wiFiWidth : WiFiWidth.values()) {
+            assertEquals(wiFiWidth, WiFiWidth.find(wiFiWidth.ordinal()));
+        }
+        assertEquals(WiFiWidth.MHZ_20, WiFiWidth.find(-1));
+        assertEquals(WiFiWidth.MHZ_20, WiFiWidth.find(WiFiWidth.values().length));
     }
 
 }

@@ -1,22 +1,27 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.scanner;
 
 import android.net.wifi.ScanResult;
+
+import com.vrem.wifianalyzer.MainContext;
+import com.vrem.wifianalyzer.settings.Settings;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
@@ -28,19 +33,25 @@ import java.util.Deque;
 import java.util.List;
 
 class Cache {
-    static final int MAX_CACHE_SIZE = 3;
+    private final Deque<List<ScanResult>> cache = new ArrayDeque<>();
 
-    private final Deque<List<ScanResult>> cache = new ArrayDeque<>(MAX_CACHE_SIZE);
-
-    List<ScanResult> getScanResults() {
+    List<CacheResult> getScanResults() {
         ScanResult current = null;
-        List<ScanResult> results = new ArrayList<>();
+        int levelTotal = 0;
+        int count = 0;
+        List<CacheResult> results = new ArrayList<>();
         for (ScanResult scanResult : combineCache()) {
-            if (current != null && scanResult.BSSID.equals(current.BSSID)) {
-                continue;
+            if (current != null && !scanResult.BSSID.equals(current.BSSID)) {
+                results.add(new CacheResult(current, levelTotal / count));
+                count = 0;
+                levelTotal = 0;
             }
             current = scanResult;
-            results.add(scanResult);
+            count++;
+            levelTotal += scanResult.level;
+        }
+        if (current != null) {
+            results.add(new CacheResult(current, levelTotal / count));
         }
         return results;
     }
@@ -55,26 +66,41 @@ class Cache {
     }
 
     void add(List<ScanResult> scanResults) {
-        if (scanResults == null) {
-            scanResults = new ArrayList<>();
+        int cacheSize = getCacheSize();
+        while (cache.size() >= cacheSize) {
+            cache.pollLast();
         }
-        if (cache.size() == MAX_CACHE_SIZE) {
-            this.cache.removeLast();
+        if (scanResults != null) {
+            cache.addFirst(scanResults);
         }
-        this.cache.addFirst(scanResults);
     }
 
     Deque<List<ScanResult>> getCache() {
         return cache;
     }
 
-    static class ScanResultComparator implements Comparator<ScanResult> {
+    int getCacheSize() {
+        Settings settings = MainContext.INSTANCE.getSettings();
+        int scanInterval = settings.getScanInterval();
+        if (scanInterval < 5) {
+            return 4;
+        }
+        if (scanInterval < 10) {
+            return 3;
+        }
+        if (scanInterval < 20) {
+            return 2;
+        }
+        return 1;
+    }
+
+    private static class ScanResultComparator implements Comparator<ScanResult> {
         @Override
         public int compare(ScanResult lhs, ScanResult rhs) {
             return new CompareToBuilder()
-                    .append(lhs.BSSID, rhs.BSSID)
-                    .append(rhs.level, lhs.level)
-                    .toComparison();
+                .append(lhs.BSSID, rhs.BSSID)
+                .append(lhs.level, rhs.level)
+                .toComparison();
         }
     }
 }

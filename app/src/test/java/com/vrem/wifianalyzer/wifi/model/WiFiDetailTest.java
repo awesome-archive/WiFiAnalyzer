@@ -1,27 +1,33 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi.model;
+
+import com.vrem.wifianalyzer.wifi.band.WiFiWidth;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 public class WiFiDetailTest {
     private static final int FREQUENCY = 2435;
@@ -36,9 +42,9 @@ public class WiFiDetailTest {
     private WiFiDetail fixture;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         wiFiAdditional = new WiFiAdditional(VENDOR_NAME, false);
-        wiFiSignal = new WiFiSignal(FREQUENCY, LEVEL);
+        wiFiSignal = new WiFiSignal(FREQUENCY, WiFiWidth.MHZ_20, LEVEL);
         fixture = new WiFiDetail(SSID, BSSID, WPA, wiFiSignal, wiFiAdditional);
     }
 
@@ -52,6 +58,7 @@ public class WiFiDetailTest {
         assertEquals(WPA, fixture.getCapabilities());
         assertEquals(SSID + " (" + BSSID + ")", fixture.getTitle());
         assertEquals(Security.WPA, fixture.getSecurity());
+        assertFalse(fixture.isHidden());
     }
 
     @Test
@@ -87,4 +94,11 @@ public class WiFiDetailTest {
         assertEquals(0, fixture.compareTo(other));
     }
 
+    @Test
+    public void testIsHidden() throws Exception {
+        // setup
+        fixture = new WiFiDetail(StringUtils.EMPTY, BSSID, WPA, wiFiSignal);
+        // execute & validate
+        assertTrue(fixture.isHidden());
+    }
 }

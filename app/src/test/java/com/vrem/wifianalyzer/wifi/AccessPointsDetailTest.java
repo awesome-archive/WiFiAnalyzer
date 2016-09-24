@@ -1,21 +1,24 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi;
 
+import android.net.wifi.WifiInfo;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.TextView;
@@ -25,6 +28,7 @@ import com.vrem.wifianalyzer.MainActivity;
 import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.R;
 import com.vrem.wifianalyzer.RobolectricUtil;
+import com.vrem.wifianalyzer.wifi.band.WiFiWidth;
 import com.vrem.wifianalyzer.wifi.model.WiFiAdditional;
 import com.vrem.wifianalyzer.wifi.model.WiFiDetail;
 import com.vrem.wifianalyzer.wifi.model.WiFiSignal;
@@ -33,22 +37,23 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class AccessPointsDetailTest {
-    private MainActivity activity = RobolectricUtil.INSTANCE.getMainActivity();
+    private MainActivity mainActivity;
 
     private View view;
     private AccessPointsDetail fixture;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
+        mainActivity = RobolectricUtil.INSTANCE.getMainActivity();
         view = MainContext.INSTANCE.getLayoutInflater().inflate(R.layout.access_points_details, null);
         assertNotNull(view);
         fixture = new AccessPointsDetail();
@@ -57,9 +62,12 @@ public class AccessPointsDetailTest {
     @Test
     public void testSetViewWithWiFiDetailAsConnection() throws Exception {
         // setup
-        WiFiDetail wiFiDetail = new WiFiDetail("SSID", "BSSID", "capabilities", new WiFiSignal(1, 2), new WiFiAdditional("VendorName", "IPAddress"));
+        WiFiDetail wiFiDetail = new WiFiDetail("SSID", "BSSID", "capabilities",
+            new WiFiSignal(1, WiFiWidth.MHZ_20, 2),
+            new WiFiAdditional("VendorName", "IPAddress", 22));
+        AccessPointsDetailOptions accessPointsDetailOptions = new AccessPointsDetailOptions(false, false);
         // execute
-        fixture.setView(activity.getResources(), view, wiFiDetail, false);
+        fixture.setView(mainActivity.getResources(), view, wiFiDetail, accessPointsDetailOptions);
         // validate
         validateTextViewValues(wiFiDetail, "SSID");
 
@@ -68,36 +76,48 @@ public class AccessPointsDetailTest {
 
         assertEquals(View.VISIBLE, view.findViewById(R.id.configuredImage).getVisibility());
 
+        validateTextViewValue(String.format("%d%s", wiFiDetail.getWiFiAdditional().getLinkSpeed(), WifiInfo.LINK_SPEED_UNITS), R.id.linkSpeed);
+        assertEquals(View.VISIBLE, view.findViewById(R.id.linkSpeed).getVisibility());
+
         validateTextViewValue(wiFiDetail.getWiFiAdditional().getVendorName(), R.id.vendor);
         assertEquals(View.VISIBLE, view.findViewById(R.id.vendor).getVisibility());
 
         assertEquals(View.GONE, view.findViewById(R.id.tab).getVisibility());
-        assertEquals(View.GONE, view.findViewById(R.id.groupColumn).getVisibility());
+        assertEquals(View.GONE, view.findViewById(R.id.groupIndicator).getVisibility());
+
+        assertEquals(View.GONE, view.findViewById(R.id.channel_frequency_range_row).getVisibility());
     }
 
     @Test
     public void testSetViewWithWiFiDetailAsScanResult() throws Exception {
         // setup
-        WiFiDetail wiFiDetail = new WiFiDetail(StringUtils.EMPTY, "BSSID", "capabilities", new WiFiSignal(1, 2), new WiFiAdditional(StringUtils.EMPTY, false));
+        WiFiDetail wiFiDetail = new WiFiDetail(StringUtils.EMPTY, "BSSID", "capabilities",
+            new WiFiSignal(1, WiFiWidth.MHZ_40, 2),
+            new WiFiAdditional(StringUtils.EMPTY, false));
+        AccessPointsDetailOptions accessPointsDetailOptions = new AccessPointsDetailOptions(true, true);
         // execute
-        fixture.setView(activity.getResources(), view, wiFiDetail, true);
+        fixture.setView(mainActivity.getResources(), view, wiFiDetail, accessPointsDetailOptions);
         // validate
         validateTextViewValues(wiFiDetail, "***");
+        WiFiSignal wiFiSignal = wiFiDetail.getWiFiSignal();
+        validateTextViewValue(String.format("%d - %d %s", wiFiSignal.getFrequencyStart(), wiFiSignal.getFrequencyEnd(), WifiInfo.FREQUENCY_UNITS), R.id.channel_frequency_range);
 
         assertEquals(View.GONE, view.findViewById(R.id.ipAddress).getVisibility());
         assertEquals(View.GONE, view.findViewById(R.id.configuredImage).getVisibility());
         assertEquals(View.GONE, view.findViewById(R.id.vendor).getVisibility());
         assertEquals(View.VISIBLE, view.findViewById(R.id.tab).getVisibility());
-        assertEquals(View.GONE, view.findViewById(R.id.groupColumn).getVisibility());
+        assertEquals(View.GONE, view.findViewById(R.id.groupIndicator).getVisibility());
+        assertEquals(View.VISIBLE, view.findViewById(R.id.channel_frequency_range_row).getVisibility());
     }
 
     private void validateTextViewValues(@NonNull WiFiDetail wiFiDetail, @NonNull String ssid) {
         WiFiSignal wiFiSignal = wiFiDetail.getWiFiSignal();
         validateTextViewValue(ssid + " (" + wiFiDetail.getBSSID() + ")", R.id.ssid);
         validateTextViewValue(String.format("%ddBm", wiFiSignal.getLevel()), R.id.level);
-        validateTextViewValue(String.format("%d", wiFiSignal.getChannel()), R.id.channel);
-        validateTextViewValue(String.format("%dMHz", wiFiSignal.getFrequency()), R.id.frequency);
-        validateTextViewValue(String.format("%6.2fm", wiFiSignal.getDistance()), R.id.distance);
+        validateTextViewValue(String.format("%d", wiFiSignal.getWiFiChannel().getChannel()), R.id.channel);
+        validateTextViewValue(String.format("%d%s", wiFiSignal.getFrequency(), WifiInfo.FREQUENCY_UNITS), R.id.frequency);
+        validateTextViewValue(String.format("(%d%s)", wiFiSignal.getWiFiWidth().getFrequencyWidth(), WifiInfo.FREQUENCY_UNITS), R.id.width);
+        validateTextViewValue(String.format("%.1fm", wiFiSignal.getDistance()), R.id.distance);
         validateTextViewValue(wiFiDetail.getCapabilities(), R.id.capabilities);
     }
 

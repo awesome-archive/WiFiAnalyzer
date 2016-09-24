@@ -1,17 +1,19 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.vendor.model;
@@ -33,23 +35,20 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class VendorService {
-
     private final Set<String> remoteCalls = new TreeSet<>();
     private final Map<String, String> cache = new HashMap<>();
-    private final MainContext mainContext = MainContext.INSTANCE;
-    private RemoteCall remoteCall;
 
-    public VendorService() {
-    }
+    private RemoteCall remoteCall;
 
     public String findVendorName(String macAddress) {
         String key = MacAddress.clean(macAddress);
         if (cache.containsKey(key)) {
             return cache.get(key);
         }
-        String result = mainContext.getDatabase().find(macAddress);
+        Database database = MainContext.INSTANCE.getDatabase();
+        String result = database.find(macAddress);
         if (result != null) {
-            result = cleanVendorName(result);
+            result = VendorNameUtils.cleanVendorName(result);
             cache.put(key, result);
             return result;
         }
@@ -60,14 +59,6 @@ public class VendorService {
         return StringUtils.EMPTY;
     }
 
-    RemoteCall getRemoteCall() {
-        return remoteCall == null ? new RemoteCall() : remoteCall;
-    }
-
-    void setRemoteCall(@NonNull RemoteCall remoteCall) {
-        this.remoteCall = remoteCall;
-    }
-
     void clear() {
         cache.clear();
         remoteCalls.clear();
@@ -75,9 +66,10 @@ public class VendorService {
 
     public SortedMap<String, List<String>> findAll() {
         SortedMap<String, List<String>> results = new TreeMap<>();
-        List<VendorData> vendorDatas = mainContext.getDatabase().findAll();
+        Database database = MainContext.INSTANCE.getDatabase();
+        List<VendorData> vendorDatas = database.findAll();
         for (VendorData vendorData : vendorDatas) {
-            String key = cleanVendorName(vendorData.getName());
+            String key = VendorNameUtils.cleanVendorName(vendorData.getName());
             List<String> macs = results.get(key);
             if (macs == null) {
                 macs = new ArrayList<>();
@@ -89,16 +81,13 @@ public class VendorService {
         return results;
     }
 
-    private String cleanVendorName(String name) {
-        if (StringUtils.isEmpty(name)) {
-            return StringUtils.EMPTY;
-        }
-        return name
-                .replace(".", " ")
-                .replace(",", " ")
-                .replace("   ", " ")
-                .replace("  ", " ")
-                .trim()
-                .toUpperCase();
+    // injectors start
+    private RemoteCall getRemoteCall() {
+        return remoteCall == null ? new RemoteCall() : remoteCall;
     }
+
+    void setRemoteCall(@NonNull RemoteCall remoteCall) {
+        this.remoteCall = remoteCall;
+    }
+    // injectors end
 }

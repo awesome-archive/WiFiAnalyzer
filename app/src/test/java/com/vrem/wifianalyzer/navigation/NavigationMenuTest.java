@@ -1,17 +1,19 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.navigation;
@@ -22,8 +24,8 @@ import com.vrem.wifianalyzer.settings.SettingActivity;
 import com.vrem.wifianalyzer.vendor.VendorFragment;
 import com.vrem.wifianalyzer.wifi.AccessPointsFragment;
 import com.vrem.wifianalyzer.wifi.ChannelRatingFragment;
-import com.vrem.wifianalyzer.wifi.graph.ChannelGraphFragment;
-import com.vrem.wifianalyzer.wifi.graph.TimeGraphFragment;
+import com.vrem.wifianalyzer.wifi.graph.channel.ChannelGraphFragment;
+import com.vrem.wifianalyzer.wifi.graph.time.TimeGraphFragment;
 
 import org.junit.Test;
 
@@ -36,17 +38,19 @@ public class NavigationMenuTest {
 
     @Test
     public void testNavigationMenu() throws Exception {
-        assertEquals(7, NavigationMenu.values().length);
+        assertEquals(8, NavigationMenu.values().length);
     }
 
     @Test
     public void testFind() throws Exception {
         assertEquals(NavigationMenu.ACCESS_POINTS, NavigationMenu.find(-1));
+        assertEquals(NavigationMenu.ACCESS_POINTS, NavigationMenu.find(NavigationMenu.values().length));
 
         assertEquals(NavigationMenu.ACCESS_POINTS, NavigationMenu.find(NavigationMenu.ACCESS_POINTS.ordinal()));
         assertEquals(NavigationMenu.CHANNEL_RATING, NavigationMenu.find(NavigationMenu.CHANNEL_RATING.ordinal()));
         assertEquals(NavigationMenu.CHANNEL_GRAPH, NavigationMenu.find(NavigationMenu.CHANNEL_GRAPH.ordinal()));
         assertEquals(NavigationMenu.TIME_GRAPH, NavigationMenu.find(NavigationMenu.TIME_GRAPH.ordinal()));
+        assertEquals(NavigationMenu.CHANNEL_AVAILABLE, NavigationMenu.find(NavigationMenu.CHANNEL_AVAILABLE.ordinal()));
         assertEquals(NavigationMenu.VENDOR_LIST, NavigationMenu.find(NavigationMenu.VENDOR_LIST.ordinal()));
         assertEquals(NavigationMenu.SETTINGS, NavigationMenu.find(NavigationMenu.SETTINGS.ordinal()));
         assertEquals(NavigationMenu.ABOUT, NavigationMenu.find(NavigationMenu.ABOUT.ordinal()));
@@ -86,14 +90,18 @@ public class NavigationMenuTest {
     }
 
     @Test
-    public void testIsSubTitle() throws Exception {
-        assertTrue(NavigationMenu.ACCESS_POINTS.isSubTitle());
-        assertTrue(NavigationMenu.CHANNEL_RATING.isSubTitle());
-        assertTrue(NavigationMenu.CHANNEL_GRAPH.isSubTitle());
-        assertTrue(NavigationMenu.TIME_GRAPH.isSubTitle());
-        assertFalse(NavigationMenu.VENDOR_LIST.isSubTitle());
-        assertFalse(NavigationMenu.SETTINGS.isSubTitle());
-        assertFalse(NavigationMenu.ABOUT.isSubTitle());
+    public void testIsWiFiBandSwitchableTrue() throws Exception {
+        assertTrue(NavigationMenu.ACCESS_POINTS.isWiFiBandSwitchable());
+        assertTrue(NavigationMenu.CHANNEL_RATING.isWiFiBandSwitchable());
+        assertTrue(NavigationMenu.CHANNEL_GRAPH.isWiFiBandSwitchable());
+        assertTrue(NavigationMenu.TIME_GRAPH.isWiFiBandSwitchable());
+    }
+
+    @Test
+    public void testIsWiFiBandSwitchableFalse() throws Exception {
+        assertFalse(NavigationMenu.VENDOR_LIST.isWiFiBandSwitchable());
+        assertFalse(NavigationMenu.SETTINGS.isWiFiBandSwitchable());
+        assertFalse(NavigationMenu.ABOUT.isWiFiBandSwitchable());
     }
 
     @Test

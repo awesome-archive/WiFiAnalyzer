@@ -1,17 +1,19 @@
 /*
- *    Copyright (C) 2015 - 2016 VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFi Analyzer
+ * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
 package com.vrem.wifianalyzer.wifi;
@@ -24,8 +26,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
-import android.widget.TextView;
 
+import com.vrem.wifianalyzer.Configuration;
 import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.R;
 import com.vrem.wifianalyzer.wifi.model.WiFiData;
@@ -33,49 +35,57 @@ import com.vrem.wifianalyzer.wifi.model.WiFiDetail;
 import com.vrem.wifianalyzer.wifi.scanner.UpdateNotifier;
 
 class AccessPointsAdapter extends BaseExpandableListAdapter implements UpdateNotifier {
-
-    private final MainContext mainContext = MainContext.INSTANCE;
     private final Resources resources;
-    private final AccessPointsAdapterData accessPointsAdapterData;
-    private final AccessPointsDetail accessPointsDetail;
+    private AccessPointsAdapterData accessPointsAdapterData;
+    private AccessPointsDetail accessPointsDetail;
 
     AccessPointsAdapter(@NonNull Context context) {
         super();
         this.resources = context.getResources();
-        this.accessPointsAdapterData = new AccessPointsAdapterData();
-        this.accessPointsDetail = new AccessPointsDetail();
-        mainContext.getScanner().addUpdateNotifier(this);
+        setAccessPointsAdapterData(new AccessPointsAdapterData());
+        setAccessPointsDetail(new AccessPointsDetail());
+    }
+
+    void setAccessPointsAdapterData(@NonNull AccessPointsAdapterData accessPointsAdapterData) {
+        this.accessPointsAdapterData = accessPointsAdapterData;
+    }
+
+    void setAccessPointsDetail(@NonNull AccessPointsDetail accessPointsDetail) {
+        this.accessPointsDetail = accessPointsDetail;
     }
 
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-        convertView = getView(convertView, parent);
-        WiFiDetail details = (WiFiDetail) getGroup(groupPosition);
-        accessPointsDetail.setView(resources, convertView, details, false);
+        View view = getView(convertView, parent);
+        WiFiDetail wiFiDetail = (WiFiDetail) getGroup(groupPosition);
+        Configuration configuration = MainContext.INSTANCE.getConfiguration();
+        AccessPointsDetailOptions accessPointsDetailOptions = new AccessPointsDetailOptions(false, configuration.isLargeScreenLayout());
+        accessPointsDetail.setView(resources, view, wiFiDetail, accessPointsDetailOptions);
 
+        ImageView groupIndicator = (ImageView) view.findViewById(R.id.groupIndicator);
         int childrenCount = getChildrenCount(groupPosition);
         if (childrenCount > 0) {
-            convertView.findViewById(R.id.groupColumn).setVisibility(View.VISIBLE);
-            ImageView groupIndicator = (ImageView) convertView.findViewById(R.id.groupIndicator);
+            groupIndicator.setVisibility(View.VISIBLE);
             groupIndicator.setImageResource(isExpanded
                     ? R.drawable.ic_expand_less_black_24dp
                     : R.drawable.ic_expand_more_black_24dp);
             groupIndicator.setColorFilter(resources.getColor(R.color.icons_color));
-            ((TextView) convertView.findViewById(R.id.groupCount)).setText(String.format("(%d) ", childrenCount + 1));
         } else {
-            convertView.findViewById(R.id.groupColumn).setVisibility(View.GONE);
+            groupIndicator.setVisibility(View.GONE);
         }
 
-        return convertView;
+        return view;
     }
 
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-        convertView = getView(convertView, parent);
-        WiFiDetail details = (WiFiDetail) getChild(groupPosition, childPosition);
-        accessPointsDetail.setView(resources, convertView, details, true);
-        convertView.findViewById(R.id.groupColumn).setVisibility(View.GONE);
-        return convertView;
+        View view = getView(convertView, parent);
+        WiFiDetail wiFiDetail = (WiFiDetail) getChild(groupPosition, childPosition);
+        Configuration configuration = MainContext.INSTANCE.getConfiguration();
+        AccessPointsDetailOptions accessPointsDetailOptions = new AccessPointsDetailOptions(true, configuration.isLargeScreenLayout());
+        accessPointsDetail.setView(resources, view, wiFiDetail, accessPointsDetailOptions);
+        view.findViewById(R.id.groupIndicator).setVisibility(View.GONE);
+        return view;
     }
 
     @Override
@@ -124,13 +134,12 @@ class AccessPointsAdapter extends BaseExpandableListAdapter implements UpdateNot
         return true;
     }
 
-    private View getView(View convertView, ViewGroup parentView) {
-        if (convertView != null) {
-            return convertView;
+    private View getView(View convertView, ViewGroup parent) {
+        View view = convertView;
+        if (view == null) {
+            LayoutInflater layoutInflater = MainContext.INSTANCE.getLayoutInflater();
+            view = layoutInflater.inflate(R.layout.access_points_details, parent, false);
         }
-
-        LayoutInflater inflater = mainContext.getLayoutInflater();
-        return inflater.inflate(R.layout.access_points_details, null);
+        return view;
     }
-
 }
