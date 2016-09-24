@@ -21,7 +21,6 @@ package com.vrem.wifianalyzer.wifi.scanner;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
-import android.support.annotation.NonNull;
 
 import com.vrem.wifianalyzer.wifi.band.WiFiWidth;
 import com.vrem.wifianalyzer.wifi.model.WiFiConnection;
@@ -34,15 +33,8 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class Transformer {
-
-    final static String SSID_FORMAT = "SSID-%02d";
-    private static int Count = 0;
-    private final Map<String, String> cache = new TreeMap<>();
-
     WiFiConnection transformWifiInfo(WifiInfo wifiInfo) {
         if (wifiInfo == null || wifiInfo.getNetworkId() == -1) {
             return WiFiConnection.EMPTY;
@@ -58,7 +50,7 @@ public class Transformer {
         List<String> results = new ArrayList<>();
         if (configuredNetworks != null) {
             for (WifiConfiguration wifiConfiguration : configuredNetworks) {
-                results.add(getDemoSSID(WiFiUtils.convertSSID(wifiConfiguration.SSID)));
+                results.add(WiFiUtils.convertSSID(wifiConfiguration.SSID));
             }
         }
         return Collections.unmodifiableList(results);
@@ -70,9 +62,7 @@ public class Transformer {
             for (CacheResult cacheResult : cacheResults) {
                 ScanResult scanResult = cacheResult.getScanResult();
                 WiFiSignal wiFiSignal = new WiFiSignal(scanResult.frequency, getWiFiWidth(scanResult), cacheResult.getLevelAverage());
-                String demoSSID = getDemoSSID(scanResult.SSID);
-                String demoBSSID = getDemoBSSID(scanResult.BSSID, demoSSID);
-                WiFiDetail wiFiDetail = new WiFiDetail(demoSSID, demoBSSID, scanResult.capabilities, wiFiSignal);
+                WiFiDetail wiFiDetail = new WiFiDetail(scanResult.SSID, scanResult.BSSID, scanResult.capabilities, wiFiSignal);
                 results.add(wiFiDetail);
             }
         }
@@ -95,21 +85,6 @@ public class Transformer {
         return new WiFiData(wiFiDetails, wiFiConnection, wifiConfigurations);
     }
 
-    String getDemoSSID(@NonNull String SSID) {
-        String demoSSID = cache.get(SSID);
-        if (demoSSID == null) {
-            demoSSID = String.format(SSID_FORMAT, Count++);
-            cache.put(SSID, demoSSID);
-        }
-        return demoSSID;
-    }
-
-    String getDemoBSSID(@NonNull String BSSID, @NonNull String demoSSID) {
-        String replacement = demoSSID.substring(demoSSID.length() - 2);
-        return BSSID.substring(0, BSSID.length() - 8)
-            + replacement + ":" + replacement + ":" + replacement;
-    }
-
     private enum Fields {
         /*
                 centerFreq0,
@@ -117,4 +92,5 @@ public class Transformer {
         */
         channelWidth
     }
+
 }

@@ -120,9 +120,9 @@ public class TransformerTest {
         List<String> actual = fixture.transformWifiConfigurations(wifiConfigurations);
         // validate
         assertEquals(wifiConfigurations.size(), actual.size());
-        assertEquals(fixture.getDemoSSID(SSID_1), actual.get(0));
-        assertEquals(fixture.getDemoSSID(SSID_2), actual.get(1));
-        assertEquals(fixture.getDemoSSID(SSID_3), actual.get(2));
+        assertEquals(SSID_1, actual.get(0));
+        assertEquals(SSID_2, actual.get(1));
+        assertEquals(SSID_3, actual.get(2));
     }
 
     @Test
@@ -133,12 +133,9 @@ public class TransformerTest {
         List<WiFiDetail> actual = fixture.transformCacheResults(cacheResults);
         // validate
         assertEquals(cacheResults.size(), actual.size());
-        String demoSSID1 = fixture.getDemoSSID(SSID_1);
-        validateWiFiDetail(demoSSID1, fixture.getDemoBSSID(BSSID_1, demoSSID1), actual.get(0));
-        String demoSSID2 = fixture.getDemoSSID(SSID_2);
-        validateWiFiDetail(demoSSID2, fixture.getDemoBSSID(BSSID_2, demoSSID2), actual.get(1));
-        String demoSSID3 = fixture.getDemoSSID(SSID_3);
-        validateWiFiDetail(demoSSID3, fixture.getDemoBSSID(BSSID_3, demoSSID3), actual.get(2));
+        validateWiFiDetail(SSID_1, BSSID_1, actual.get(0));
+        validateWiFiDetail(SSID_2, BSSID_2, actual.get(1));
+        validateWiFiDetail(SSID_3, BSSID_3, actual.get(2));
     }
 
     private void validateWiFiDetail(String SSID, String BSSID, WiFiDetail wiFiDetail) {
