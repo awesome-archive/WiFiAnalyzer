@@ -95,14 +95,6 @@ public class Transformer {
         return new WiFiData(wiFiDetails, wiFiConnection, wifiConfigurations);
     }
 
-    private enum Fields {
-        /*
-                centerFreq0,
-                centerFreq1,
-        */
-        channelWidth
-    }
-
     String getDemoSSID(@NonNull String SSID) {
         String demoSSID = cache.get(SSID);
         if (demoSSID == null) {
@@ -115,6 +107,14 @@ public class Transformer {
     String getDemoBSSID(@NonNull String BSSID, @NonNull String demoSSID) {
         String replacement = demoSSID.substring(demoSSID.length() - 2);
         return BSSID.substring(0, BSSID.length() - 8)
-                + replacement + ":" + replacement + ":" + replacement;
+            + replacement + ":" + replacement + ":" + replacement;
+    }
+
+    private enum Fields {
+        /*
+                centerFreq0,
+                centerFreq1,
+        */
+        channelWidth
     }
 }
