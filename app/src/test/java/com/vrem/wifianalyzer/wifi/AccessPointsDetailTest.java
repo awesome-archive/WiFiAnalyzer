@@ -61,63 +61,114 @@ public class AccessPointsDetailTest {
     }
 
     @Test
-    public void testSetViewWithWiFiDetailAsConnection() throws Exception {
+    public void testSetViewWithIpAddressAndLinkSpeedGone() throws Exception {
         // setup
-        WiFiDetail wiFiDetail = new WiFiDetail("SSID", "BSSID", "capabilities",
-            new WiFiSignal(1, WiFiWidth.MHZ_20, 2),
-            new WiFiAdditional("VendorName", "IPAddress", 22));
-        AccessPointsDetailOptions accessPointsDetailOptions = new AccessPointsDetailOptions(false, false);
+        WiFiAdditional wiFiAdditional = new WiFiAdditional(StringUtils.EMPTY, "IPAddress", 22);
+        WiFiDetail wiFiDetail = withWiFiDetail("SSID", wiFiAdditional);
         // execute
-        fixture.setView(mainActivity.getResources(), view, wiFiDetail, accessPointsDetailOptions);
+        fixture.setView(mainActivity.getResources(), view, wiFiDetail, false);
         // validate
-        validateTextViewValues(wiFiDetail);
-
-        validateTextViewValue(wiFiDetail.getWiFiAdditional().getIPAddress(), R.id.ipAddress);
-        assertEquals(View.VISIBLE, view.findViewById(R.id.ipAddress).getVisibility());
-
-        assertEquals(View.VISIBLE, view.findViewById(R.id.configuredImage).getVisibility());
-
-        validateTextViewValue(String.format("%d%s", wiFiDetail.getWiFiAdditional().getLinkSpeed(), WifiInfo.LINK_SPEED_UNITS), R.id.linkSpeed);
-        assertEquals(View.VISIBLE, view.findViewById(R.id.linkSpeed).getVisibility());
-
-        validateTextViewValue(wiFiDetail.getWiFiAdditional().getVendorName(), R.id.vendor);
-        assertEquals(View.VISIBLE, view.findViewById(R.id.vendor).getVisibility());
-
-        assertEquals(View.GONE, view.findViewById(R.id.tab).getVisibility());
-        assertEquals(View.GONE, view.findViewById(R.id.groupIndicator).getVisibility());
-
-        assertEquals(View.GONE, view.findViewById(R.id.channel_frequency_range_row).getVisibility());
+        assertEquals(View.GONE, view.findViewById(R.id.ipAddress).getVisibility());
+        assertEquals(View.GONE, view.findViewById(R.id.linkSpeed).getVisibility());
     }
 
     @Test
-    public void testSetViewWithWiFiDetailAsScanResult() throws Exception {
+    public void testSetViewWithConfiguredImageVisible() throws Exception {
         // setup
-        WiFiDetail wiFiDetail = new WiFiDetail(StringUtils.EMPTY, "BSSID", "capabilities",
-            new WiFiSignal(1, WiFiWidth.MHZ_40, 2),
-            new WiFiAdditional(StringUtils.EMPTY, false));
-        AccessPointsDetailOptions accessPointsDetailOptions = new AccessPointsDetailOptions(true, true);
+        WiFiAdditional wiFiAdditional = new WiFiAdditional(StringUtils.EMPTY, "IPAddress", 22);
+        WiFiDetail wiFiDetail = withWiFiDetail("SSID", wiFiAdditional);
         // execute
-        fixture.setView(mainActivity.getResources(), view, wiFiDetail, accessPointsDetailOptions);
+        fixture.setView(mainActivity.getResources(), view, wiFiDetail, false);
         // validate
-        validateTextViewValues(wiFiDetail);
-        WiFiSignal wiFiSignal = wiFiDetail.getWiFiSignal();
-        validateTextViewValue(String.format("%d - %d %s", wiFiSignal.getFrequencyStart(), wiFiSignal.getFrequencyEnd(), WifiInfo.FREQUENCY_UNITS), R.id.channel_frequency_range);
-
-        assertEquals(View.GONE, view.findViewById(R.id.ipAddress).getVisibility());
-        assertEquals(View.GONE, view.findViewById(R.id.configuredImage).getVisibility());
-        assertEquals(View.GONE, view.findViewById(R.id.vendor).getVisibility());
-        assertEquals(View.VISIBLE, view.findViewById(R.id.tab).getVisibility());
-        assertEquals(View.GONE, view.findViewById(R.id.groupIndicator).getVisibility());
-        assertEquals(View.VISIBLE, view.findViewById(R.id.channel_frequency_range_row).getVisibility());
+        assertEquals(View.VISIBLE, view.findViewById(R.id.configuredImage).getVisibility());
     }
 
-    private void validateTextViewValues(@NonNull WiFiDetail wiFiDetail) {
+    @Test
+    public void testSetViewWithTabGone() throws Exception {
+        // setup
+        WiFiAdditional wiFiAdditional = new WiFiAdditional(StringUtils.EMPTY, "IPAddress", 22);
+        WiFiDetail wiFiDetail = withWiFiDetail("SSID", wiFiAdditional);
+        // execute
+        fixture.setView(mainActivity.getResources(), view, wiFiDetail, false);
+        // validate
+        assertEquals(View.GONE, view.findViewById(R.id.tab).getVisibility());
+    }
+
+    @Test
+    public void testSetViewWithGroupIndicatorGone() throws Exception {
+        // setup
+        WiFiAdditional wiFiAdditional = new WiFiAdditional(StringUtils.EMPTY, "IPAddress", 22);
+        WiFiDetail wiFiDetail = withWiFiDetail("SSID", wiFiAdditional);
+        // execute
+        fixture.setView(mainActivity.getResources(), view, wiFiDetail, false);
+        // validate
+        assertEquals(View.GONE, view.findViewById(R.id.groupIndicator).getVisibility());
+    }
+
+    @Test
+    public void testSetViewWithVendorNameVisible() throws Exception {
+        // setup
+        WiFiDetail wiFiDetail = withWiFiDetail("SSID", new WiFiAdditional("VendorName", false));
+        // execute
+        fixture.setView(mainActivity.getResources(), view, wiFiDetail, false);
+        // validate
+        assertEquals(View.VISIBLE, view.findViewById(R.id.vendor).getVisibility());
+    }
+
+    @Test
+    public void testSetViewWithVendorNameMaximumSize() throws Exception {
+        // setup
+        String vendorName = "VendorName-VendorName";
+        WiFiDetail wiFiDetail = withWiFiDetail("SSID", new WiFiAdditional(vendorName, false));
+        // execute
+        fixture.setView(mainActivity.getResources(), view, wiFiDetail, false);
+        // validate
+        validateTextViewValue(vendorName.substring(0, 12), R.id.vendor);
+    }
+
+    @Test
+    public void testSetViewWithTabVisible() throws Exception {
+        // setup
+        WiFiDetail wiFiDetail = withWiFiDetail(StringUtils.EMPTY, new WiFiAdditional(StringUtils.EMPTY, false));
+        // execute
+        fixture.setView(mainActivity.getResources(), view, wiFiDetail, true);
+        // validate
+        assertEquals(View.VISIBLE, view.findViewById(R.id.tab).getVisibility());
+    }
+
+    @Test
+    public void testSetViewWithWiFiDetailAndEmptySSID() throws Exception {
+        // setup
+        WiFiDetail wiFiDetail = withWiFiDetail(StringUtils.EMPTY, new WiFiAdditional(StringUtils.EMPTY, false));
+        // execute
+        fixture.setView(mainActivity.getResources(), view, wiFiDetail, false);
+        // validate
+        validateTextViewValues(wiFiDetail, "***");
+    }
+
+    @Test
+    public void testSetViewWithWiFiDetail() throws Exception {
+        // setup
+        String ssid = "SSID";
+        WiFiDetail wiFiDetail = withWiFiDetail(ssid, new WiFiAdditional(StringUtils.EMPTY, false));
+        // execute
+        fixture.setView(mainActivity.getResources(), view, wiFiDetail, false);
+        // validate
+        validateTextViewValues(wiFiDetail, ssid);
+    }
+
+    private WiFiDetail withWiFiDetail(String SSID, WiFiAdditional wiFiAdditional) {
+        return new WiFiDetail(SSID, "BSSID", "capabilities", new WiFiSignal(1, 1, WiFiWidth.MHZ_40, 2), wiFiAdditional);
+    }
+
+    private void validateTextViewValues(@NonNull WiFiDetail wiFiDetail, @NonNull String ssid) {
         WiFiSignal wiFiSignal = wiFiDetail.getWiFiSignal();
         validateTextViewValue(Demo.INSTANCE.getSSID(wiFiDetail.getSSID()) + " (" + Demo.INSTANCE.getBSSID(wiFiDetail.getBSSID(), wiFiDetail.getSSID()) + ")", R.id.ssid);
-        validateTextViewValue(String.format("%ddBm", wiFiSignal.getLevel()), R.id.level);
-        validateTextViewValue(String.format("%d", wiFiSignal.getWiFiChannel().getChannel()), R.id.channel);
-        validateTextViewValue(String.format("%d%s", wiFiSignal.getFrequency(), WifiInfo.FREQUENCY_UNITS), R.id.frequency);
-        validateTextViewValue(String.format("(%d%s)", wiFiSignal.getWiFiWidth().getFrequencyWidth(), WifiInfo.FREQUENCY_UNITS), R.id.width);
+        validateTextViewValue(wiFiSignal.getLevel() + "dBm", R.id.level);
+        validateTextViewValue("" + wiFiSignal.getPrimaryWiFiChannel().getChannel(), R.id.channel);
+        validateTextViewValue(wiFiSignal.getPrimaryFrequency() + WifiInfo.FREQUENCY_UNITS, R.id.primaryFrequency);
+        validateTextViewValue(wiFiSignal.getFrequencyStart() + " - " + wiFiSignal.getFrequencyEnd(), R.id.channel_frequency_range);
+        validateTextViewValue("(" + wiFiSignal.getWiFiWidth().getFrequencyWidth() + WifiInfo.FREQUENCY_UNITS + ")", R.id.width);
         validateTextViewValue(String.format("%.1fm", wiFiSignal.getDistance()), R.id.distance);
         validateTextViewValue(wiFiDetail.getCapabilities(), R.id.capabilities);
     }

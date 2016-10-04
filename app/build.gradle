@@ -24,7 +24,7 @@ android {
     buildToolsVersion "23.0.3"
 
     defaultConfig {
-        applicationId "com.vrem.wifianalyzer.DEMO"
+        applicationId "com.vrem.wifianalyzer.BETA"
         minSdkVersion 22
         targetSdkVersion 22
         versionCode
@@ -49,11 +49,6 @@ android {
                 includeNoLocationClasses true
             }
         }
-    }
-
-    packagingOptions {
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.txt'
     }
 }
 

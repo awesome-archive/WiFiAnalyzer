@@ -29,30 +29,36 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class WiFiSignal {
-    public static final WiFiSignal EMPTY = new WiFiSignal(0, WiFiWidth.MHZ_20, 0);
+    public static final WiFiSignal EMPTY = new WiFiSignal(0, 0, WiFiWidth.MHZ_20, 0);
 
-    private final int frequency;
+    private final int primaryFrequency;
+    private final int centerFrequency;
     private final WiFiWidth wiFiWidth;
     private final WiFiBand wiFiBand;
     private final int level;
 
-    public WiFiSignal(int frequency, @NonNull WiFiWidth wiFiWidth, int level) {
-        this.frequency = frequency;
+    public WiFiSignal(int primaryFrequency, int centerFrequency, @NonNull WiFiWidth wiFiWidth, int level) {
+        this.primaryFrequency = primaryFrequency;
+        this.centerFrequency = centerFrequency;
         this.wiFiWidth = wiFiWidth;
         this.level = level;
-        this.wiFiBand = WiFiBand.findByFrequency(frequency);
+        this.wiFiBand = WiFiBand.findByFrequency(primaryFrequency);
     }
 
-    public int getFrequency() {
-        return frequency;
+    public int getPrimaryFrequency() {
+        return primaryFrequency;
+    }
+
+    public int getCenterFrequency() {
+        return centerFrequency;
     }
 
     public int getFrequencyStart() {
-        return getFrequency() - getWiFiWidth().getFrequencyWidthHalf();
+        return getCenterFrequency() - getWiFiWidth().getFrequencyWidthHalf();
     }
 
     public int getFrequencyEnd() {
-        return getFrequency() + getWiFiWidth().getFrequencyWidthHalf();
+        return getCenterFrequency() + getWiFiWidth().getFrequencyWidthHalf();
     }
 
     public WiFiBand getWiFiBand() {
@@ -63,8 +69,12 @@ public class WiFiSignal {
         return wiFiWidth;
     }
 
-    public WiFiChannel getWiFiChannel() {
-        return getWiFiBand().getWiFiChannels().getWiFiChannelByFrequency(getFrequency());
+    public WiFiChannel getPrimaryWiFiChannel() {
+        return getWiFiBand().getWiFiChannels().getWiFiChannelByFrequency(getPrimaryFrequency());
+    }
+
+    public WiFiChannel getCenterWiFiChannel() {
+        return getWiFiBand().getWiFiChannels().getWiFiChannelByFrequency(getCenterFrequency());
     }
 
     public int getLevel() {
@@ -76,7 +86,7 @@ public class WiFiSignal {
     }
 
     public double getDistance() {
-        return WiFiUtils.calculateDistance(getFrequency(), getLevel());
+        return WiFiUtils.calculateDistance(getPrimaryFrequency(), getLevel());
     }
 
     public boolean isInRange(int frequency) {
@@ -92,7 +102,7 @@ public class WiFiSignal {
             return false;
         }
         return new EqualsBuilder()
-            .append(getFrequency(), ((WiFiSignal) other).getFrequency())
+            .append(getPrimaryFrequency(), ((WiFiSignal) other).getPrimaryFrequency())
             .append(getWiFiWidth(), ((WiFiSignal) other).getWiFiWidth())
             .isEquals();
     }
@@ -100,7 +110,7 @@ public class WiFiSignal {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-            .append(getFrequency())
+            .append(getPrimaryFrequency())
             .append(getWiFiWidth())
             .toHashCode();
     }

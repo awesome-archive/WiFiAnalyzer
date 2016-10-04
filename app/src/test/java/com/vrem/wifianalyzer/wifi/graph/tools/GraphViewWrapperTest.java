@@ -126,6 +126,7 @@ public class GraphViewWrapperTest {
     @Test
     public void testAppendSeriesNew() throws Exception {
         // setup
+        String expectedTitle = Demo.INSTANCE.getSSID(wiFiDetail.getSSID()) + " " + wiFiDetail.getWiFiSignal().getPrimaryWiFiChannel().getChannel();
         when(seriesCache.add(wiFiDetail, baseSeries)).thenReturn(baseSeries);
         // execute
         boolean actual = fixture.appendSeries(wiFiDetail, baseSeries, dataPoint, 10);
@@ -133,7 +134,7 @@ public class GraphViewWrapperTest {
         assertTrue(actual);
         verify(seriesCache).add(wiFiDetail, baseSeries);
         verify(graphView).addSeries(baseSeries);
-        verify(baseSeries).setTitle(Demo.INSTANCE.getSSID(wiFiDetail.getSSID()) + " " + wiFiDetail.getWiFiSignal().getWiFiChannel().getChannel());
+        verify(baseSeries).setTitle(expectedTitle);
         verify(baseSeries).setOnDataPointTapListener(any(GraphViewWrapper.GraphTapListener.class));
     }
 
@@ -153,6 +154,7 @@ public class GraphViewWrapperTest {
     @Test
     public void testAddSeriesNew() throws Exception {
         // setup
+        String expectedTitle = Demo.INSTANCE.getSSID(wiFiDetail.getSSID()) + " " + wiFiDetail.getWiFiSignal().getPrimaryWiFiChannel().getChannel();
         DataPoint[] dataPoints = {dataPoint};
         when(seriesCache.add(wiFiDetail, baseSeries)).thenReturn(baseSeries);
         // execute
@@ -161,7 +163,7 @@ public class GraphViewWrapperTest {
         assertTrue(actual);
         verify(seriesCache).add(wiFiDetail, baseSeries);
         verify(graphView).addSeries(baseSeries);
-        verify(baseSeries).setTitle(Demo.INSTANCE.getSSID(wiFiDetail.getSSID()) + " " + wiFiDetail.getWiFiSignal().getWiFiChannel().getChannel());
+        verify(baseSeries).setTitle(expectedTitle);
         verify(baseSeries).setOnDataPointTapListener(any(GraphViewWrapper.GraphTapListener.class));
     }
 
