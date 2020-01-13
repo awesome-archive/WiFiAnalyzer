@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,13 +31,6 @@ public enum WiFiWidth {
     WiFiWidth(int frequencyWidth) {
         this.frequencyWidth = frequencyWidth;
         this.frequencyWidthHalf = frequencyWidth / 2;
-    }
-
-    public static WiFiWidth find(int ordinal) {
-        if (ordinal < 0 || ordinal >= values().length) {
-            return WiFiWidth.MHZ_20;
-        }
-        return values()[ordinal];
     }
 
     public int getFrequencyWidth() {

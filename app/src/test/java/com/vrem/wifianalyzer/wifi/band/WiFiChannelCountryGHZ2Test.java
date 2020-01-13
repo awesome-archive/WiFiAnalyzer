@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +18,13 @@
 
 package com.vrem.wifianalyzer.wifi.band;
 
+import org.apache.commons.collections4.Closure;
+import org.apache.commons.collections4.IterableUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -30,8 +33,8 @@ import static org.junit.Assert.assertTrue;
 
 public class WiFiChannelCountryGHZ2Test {
 
-    private SortedSet<Integer> channelsSet1 = new TreeSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11));
-    private SortedSet<Integer> channelsSet2 = new TreeSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13));
+    private final static SortedSet<Integer> CHANNELS_SET1 = new TreeSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11));
+    private final static SortedSet<Integer> CHANNELS_SET2 = new TreeSet<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13));
 
     private WiFiChannelCountryGHZ2 fixture;
 
@@ -41,21 +44,15 @@ public class WiFiChannelCountryGHZ2Test {
     }
 
     @Test
-    public void testChannelsForUSAndSimilar() throws Exception {
-        String[] countries = new String[]{"AS", "AU", "CA", "FM", "GU", "MP", "PA", "PR", "TW", "UM", "US", "VI"};
-        for (String country : countries) {
-            SortedSet<Integer> channels = fixture.findChannels(country);
-            validateChannels(channelsSet1, channels);
-        }
+    public void testChannelsForUSAndSimilar() {
+        List<String> countries = Arrays.asList("AS", "CA", "CO", "DO", "FM", "GT", "GU", "MP", "MX", "PA", "PR", "UM", "US", "UZ", "VI");
+        IterableUtils.forEach(countries, new ChannelUSClosure());
     }
 
     @Test
-    public void testChannelsForWorld() throws Exception {
-        String[] countries = new String[]{null, "GB", "XYZ", "MX", "AE"};
-        for (String country : countries) {
-            SortedSet<Integer> channels = fixture.findChannels(country);
-            validateChannels(channelsSet2, channels);
-        }
+    public void testChannelsForWorld() {
+        List<String> countries = Arrays.asList(null, "GB", "XYZ", "AU", "AE");
+        IterableUtils.forEach(countries, new ChannelWorldClosure());
     }
 
     private void validateChannels(SortedSet<Integer> expected, SortedSet<Integer> actual) {
@@ -63,4 +60,17 @@ public class WiFiChannelCountryGHZ2Test {
         assertTrue(actual.containsAll(expected));
     }
 
+    private class ChannelUSClosure implements Closure<String> {
+        @Override
+        public void execute(String country) {
+            validateChannels(CHANNELS_SET1, fixture.findChannels(country));
+        }
+    }
+
+    private class ChannelWorldClosure implements Closure<String> {
+        @Override
+        public void execute(String country) {
+            validateChannels(CHANNELS_SET2, fixture.findChannels(country));
+        }
+    }
 }

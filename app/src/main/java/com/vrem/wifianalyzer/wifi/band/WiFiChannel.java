@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,12 +18,12 @@
 
 package com.vrem.wifianalyzer.wifi.band;
 
-import android.support.annotation.NonNull;
-
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import androidx.annotation.NonNull;
 
 public class WiFiChannel implements Comparable<WiFiChannel> {
     public static final WiFiChannel UNKNOWN = new WiFiChannel();
@@ -55,15 +55,16 @@ public class WiFiChannel implements Comparable<WiFiChannel> {
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
+    public boolean equals(Object o) {
+        if (this == o) return true;
 
-        if (other == null || getClass() != other.getClass()) return false;
+        if (o == null || getClass() != o.getClass()) return false;
 
-        WiFiChannel otherDetail = (WiFiChannel) other;
+        WiFiChannel that = (WiFiChannel) o;
+
         return new EqualsBuilder()
-            .append(getChannel(), (otherDetail).getChannel())
-            .append(getFrequency(), (otherDetail).getFrequency())
+            .append(getChannel(), that.getChannel())
+            .append(getFrequency(), that.getFrequency())
             .isEquals();
     }
 

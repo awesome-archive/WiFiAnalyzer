@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,14 +18,13 @@
 
 package com.vrem.wifianalyzer.wifi.model;
 
-import android.support.annotation.NonNull;
-
 import com.vrem.wifianalyzer.wifi.band.WiFiChannel;
 
-import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-public class ChannelAPCount implements Comparable<ChannelAPCount> {
+import androidx.annotation.NonNull;
+
+public class ChannelAPCount {
     private final WiFiChannel wiFiChannel;
     private final int count;
 
@@ -34,20 +33,13 @@ public class ChannelAPCount implements Comparable<ChannelAPCount> {
         this.count = count;
     }
 
+    @NonNull
     public WiFiChannel getWiFiChannel() {
         return wiFiChannel;
     }
 
     int getCount() {
         return count;
-    }
-
-    @Override
-    public int compareTo(@NonNull ChannelAPCount another) {
-        return new CompareToBuilder()
-            .append(getCount(), another.getCount())
-            .append(getWiFiChannel(), another.getWiFiChannel())
-            .toComparison();
     }
 
     @Override

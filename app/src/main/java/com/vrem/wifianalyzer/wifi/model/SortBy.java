@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,12 @@
 
 package com.vrem.wifianalyzer.wifi.model;
 
-import android.support.annotation.NonNull;
-
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
 import java.util.Comparator;
+import java.util.Locale;
+
+import androidx.annotation.NonNull;
 
 public enum SortBy {
     STRENGTH(new StrengthComparator()),
@@ -35,25 +36,19 @@ public enum SortBy {
         this.comparator = comparator;
     }
 
-    public static SortBy find(int index) {
-        if (index < 0 || index >= values().length) {
-            return STRENGTH;
-        }
-        return values()[index];
-    }
-
+    @NonNull
     Comparator<WiFiDetail> comparator() {
         return comparator;
     }
 
-
     static class StrengthComparator implements Comparator<WiFiDetail> {
         @Override
         public int compare(WiFiDetail lhs, WiFiDetail rhs) {
+            Locale locale = Locale.getDefault();
             return new CompareToBuilder()
                 .append(rhs.getWiFiSignal().getLevel(), lhs.getWiFiSignal().getLevel())
-                .append(lhs.getSSID().toUpperCase(), rhs.getSSID().toUpperCase())
-                .append(lhs.getBSSID().toUpperCase(), rhs.getBSSID().toUpperCase())
+                .append(lhs.getSSID().toUpperCase(locale), rhs.getSSID().toUpperCase(locale))
+                .append(lhs.getBSSID().toUpperCase(locale), rhs.getBSSID().toUpperCase(locale))
                 .toComparison();
         }
     }
@@ -62,10 +57,11 @@ public enum SortBy {
     static class SSIDComparator implements Comparator<WiFiDetail> {
         @Override
         public int compare(WiFiDetail lhs, WiFiDetail rhs) {
+            Locale locale = Locale.getDefault();
             return new CompareToBuilder()
-                .append(lhs.getSSID().toUpperCase(), rhs.getSSID().toUpperCase())
+                .append(lhs.getSSID().toUpperCase(locale), rhs.getSSID().toUpperCase(locale))
                 .append(rhs.getWiFiSignal().getLevel(), lhs.getWiFiSignal().getLevel())
-                .append(lhs.getBSSID().toUpperCase(), rhs.getBSSID().toUpperCase())
+                .append(lhs.getBSSID().toUpperCase(locale), rhs.getBSSID().toUpperCase(locale))
                 .toComparison();
         }
     }
@@ -73,11 +69,12 @@ public enum SortBy {
     static class ChannelComparator implements Comparator<WiFiDetail> {
         @Override
         public int compare(WiFiDetail lhs, WiFiDetail rhs) {
+            Locale locale = Locale.getDefault();
             return new CompareToBuilder()
                 .append(lhs.getWiFiSignal().getPrimaryWiFiChannel().getChannel(), rhs.getWiFiSignal().getPrimaryWiFiChannel().getChannel())
                 .append(rhs.getWiFiSignal().getLevel(), lhs.getWiFiSignal().getLevel())
-                .append(lhs.getSSID().toUpperCase(), rhs.getSSID().toUpperCase())
-                .append(lhs.getBSSID().toUpperCase(), rhs.getBSSID().toUpperCase())
+                .append(lhs.getSSID().toUpperCase(locale), rhs.getSSID().toUpperCase(locale))
+                .append(lhs.getBSSID().toUpperCase(locale), rhs.getBSSID().toUpperCase(locale))
                 .toComparison();
         }
     }

@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,33 +18,38 @@
 
 package com.vrem.wifianalyzer.settings;
 
+import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.R;
 
+import androidx.annotation.StyleRes;
+
 public enum ThemeStyle {
-    DARK(R.style.ThemeAppCompatDark, R.style.ThemeDeviceDefaultDark),
-    LIGHT(R.style.ThemeAppCompatLight, R.style.ThemeDeviceDefaultLight);
+    DARK(R.style.ThemeDark, R.style.ThemeDarkNoActionBar),
+    LIGHT(R.style.ThemeLight, R.style.ThemeLightNoActionBar),
+    SYSTEM(R.style.ThemeSystem, R.style.ThemeSystemNoActionBar);
 
-    private final int themeAppCompatStyle;
-    private final int themeDeviceDefaultStyle;
+    private final int theme;
+    private final int themeNoActionBar;
 
-    ThemeStyle(int themeAppCompatStyle, int themeDeviceDefaultStyle) {
-        this.themeAppCompatStyle = themeAppCompatStyle;
-        this.themeDeviceDefaultStyle = themeDeviceDefaultStyle;
+    ThemeStyle(@StyleRes int theme, @StyleRes int themeNoActionBar) {
+        this.theme = theme;
+        this.themeNoActionBar = themeNoActionBar;
     }
 
-    public static ThemeStyle find(int index) {
-        if (index < 0 || index >= values().length) {
-            return DARK;
-        }
-        return values()[index];
-
+    @StyleRes
+    public static int getDefaultTheme() {
+        Settings settings = MainContext.INSTANCE.getSettings();
+        ThemeStyle themeStyle = (settings == null ? ThemeStyle.DARK : settings.getThemeStyle());
+        return themeStyle.getTheme();
     }
 
-    public int themeAppCompatStyle() {
-        return themeAppCompatStyle;
+    public @StyleRes
+    int getTheme() {
+        return theme;
     }
 
-    public int themeDeviceDefaultStyle() {
-        return themeDeviceDefaultStyle;
+    public @StyleRes
+    int getThemeNoActionBar() {
+        return themeNoActionBar;
     }
 }

@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,37 +18,63 @@
 
 package com.vrem.wifianalyzer.settings;
 
+import com.vrem.wifianalyzer.MainContextHelper;
 import com.vrem.wifianalyzer.R;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import androidx.annotation.StyleRes;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ThemeStyleTest {
+    private Settings settings;
 
-    @Test
-    public void testThemeStyle() throws Exception {
-        assertEquals(2, ThemeStyle.values().length);
+    @Before
+    public void setUp() {
+        settings = MainContextHelper.INSTANCE.getSettings();
+    }
+
+    @After
+    public void tearDown() {
+        MainContextHelper.INSTANCE.restore();
     }
 
     @Test
-    public void testFind() throws Exception {
-        assertEquals(ThemeStyle.DARK, ThemeStyle.find(-1));
-        assertEquals(ThemeStyle.DARK, ThemeStyle.find(ThemeStyle.values().length));
-
-        assertEquals(ThemeStyle.LIGHT, ThemeStyle.find(ThemeStyle.LIGHT.ordinal()));
-        assertEquals(ThemeStyle.DARK, ThemeStyle.find(ThemeStyle.DARK.ordinal()));
+    public void testThemeStyle() {
+        assertEquals(3, ThemeStyle.values().length);
     }
 
     @Test
-    public void testThemeAppCompatStyle() throws Exception {
-        assertEquals(R.style.ThemeAppCompatLight, ThemeStyle.LIGHT.themeAppCompatStyle());
-        assertEquals(R.style.ThemeAppCompatDark, ThemeStyle.DARK.themeAppCompatStyle());
+    public void testGetTheme() {
+        assertEquals(R.style.ThemeLight, ThemeStyle.LIGHT.getTheme());
+        assertEquals(R.style.ThemeDark, ThemeStyle.DARK.getTheme());
+        assertEquals(R.style.ThemeSystem, ThemeStyle.SYSTEM.getTheme());
     }
 
     @Test
-    public void testThemeDeviceDefaultStyle() throws Exception {
-        assertEquals(R.style.ThemeDeviceDefaultLight, ThemeStyle.LIGHT.themeDeviceDefaultStyle());
-        assertEquals(R.style.ThemeDeviceDefaultDark, ThemeStyle.DARK.themeDeviceDefaultStyle());
+    public void testGetThemeNoActionBar() {
+        assertEquals(R.style.ThemeDarkNoActionBar, ThemeStyle.DARK.getThemeNoActionBar());
+        assertEquals(R.style.ThemeLightNoActionBar, ThemeStyle.LIGHT.getThemeNoActionBar());
+        assertEquals(R.style.ThemeSystemNoActionBar, ThemeStyle.SYSTEM.getThemeNoActionBar());
     }
+
+    @Test
+    public void testGetDefaultTheme() {
+        // setup
+        when(settings.getThemeStyle()).thenReturn(ThemeStyle.LIGHT);
+        // execute
+        @StyleRes int actual = ThemeStyle.getDefaultTheme();
+        // validate
+        assertEquals(ThemeStyle.LIGHT.getTheme(), actual);
+        verify(settings).getThemeStyle();
+    }
+
 }

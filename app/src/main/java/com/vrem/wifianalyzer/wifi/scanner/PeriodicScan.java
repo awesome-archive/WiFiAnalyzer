@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,20 +19,21 @@
 package com.vrem.wifianalyzer.wifi.scanner;
 
 import android.os.Handler;
-import android.support.annotation.NonNull;
 
 import com.vrem.wifianalyzer.settings.Settings;
 
-class PeriodicScan implements Runnable {
-    static final int DELAY_INITIAL = 1;
-    static final int DELAY_INTERVAL = 1000;
+import androidx.annotation.NonNull;
 
-    private final Scanner scanner;
+class PeriodicScan implements Runnable {
+    static final long DELAY_INITIAL = 1L;
+    static final long DELAY_INTERVAL = 1000L;
+
+    private final ScannerService scanner;
     private final Handler handler;
     private final Settings settings;
     private boolean running;
 
-    PeriodicScan(@NonNull Scanner scanner, @NonNull Handler handler, @NonNull Settings settings) {
+    PeriodicScan(@NonNull ScannerService scanner, @NonNull Handler handler, @NonNull Settings settings) {
         this.scanner = scanner;
         this.handler = handler;
         this.settings = settings;
@@ -48,7 +49,7 @@ class PeriodicScan implements Runnable {
         nextRun(DELAY_INITIAL);
     }
 
-    private void nextRun(int delayInitial) {
+    private void nextRun(long delayInitial) {
         stop();
         handler.postDelayed(this, delayInitial);
         running = true;
@@ -57,7 +58,7 @@ class PeriodicScan implements Runnable {
     @Override
     public void run() {
         scanner.update();
-        nextRun(settings.getScanInterval() * DELAY_INTERVAL);
+        nextRun(settings.getScanSpeed() * DELAY_INTERVAL);
     }
 
     boolean isRunning() {

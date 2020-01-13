@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,35 +19,46 @@
 package com.vrem.wifianalyzer.settings;
 
 import android.content.Context;
-import android.preference.ListPreference;
-import android.support.annotation.NonNull;
 import android.util.AttributeSet;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Transformer;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.preference.ListPreference;
+
 class CustomPreference extends ListPreference {
-    CustomPreference(@NonNull Context context, AttributeSet attrs, List<Data> datas, String defaultValue) {
+    CustomPreference(@NonNull Context context, AttributeSet attrs, @NonNull List<Data> data, @NonNull String defaultValue) {
         super(context, attrs);
-        setEntries(getNames(datas));
-        setEntryValues(getCodes(datas));
+        setEntries(getNames(data));
+        setEntryValues(getCodes(data));
         setDefaultValue(defaultValue);
     }
 
-    private CharSequence[] getCodes(List<Data> datas) {
-        List<String> entryValues = new ArrayList<>();
-        for (Data data : datas) {
-            entryValues.add(data.getCode());
-        }
-        return entryValues.toArray(new CharSequence[]{});
+    @NonNull
+    private CharSequence[] getCodes(@NonNull List<Data> data) {
+        return new ArrayList<>(CollectionUtils.collect(data, new ToCode())).toArray(new CharSequence[]{});
     }
 
-    private CharSequence[] getNames(List<Data> datas) {
-        List<String> entries = new ArrayList<>();
-        for (Data data : datas) {
-            entries.add(data.getName());
-        }
-        return entries.toArray(new CharSequence[]{});
+    @NonNull
+    private CharSequence[] getNames(@NonNull List<Data> data) {
+        return new ArrayList<>(CollectionUtils.collect(data, new ToName())).toArray(new CharSequence[]{});
     }
 
+    private static class ToCode implements Transformer<Data, String> {
+        @Override
+        public String transform(Data input) {
+            return input.getCode();
+        }
+    }
+
+    private static class ToName implements Transformer<Data, String> {
+        @Override
+        public String transform(Data input) {
+            return input.getName();
+        }
+    }
 }

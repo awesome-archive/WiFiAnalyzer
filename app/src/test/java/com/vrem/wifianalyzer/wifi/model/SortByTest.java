@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,24 +26,15 @@ import static org.junit.Assert.assertTrue;
 public class SortByTest {
 
     @Test
-    public void testSortByNumber() throws Exception {
+    public void testSortByNumber() {
         assertEquals(3, SortBy.values().length);
     }
 
     @Test
-    public void testComparator() throws Exception {
+    public void testComparator() {
         assertTrue(SortBy.STRENGTH.comparator() instanceof SortBy.StrengthComparator);
         assertTrue(SortBy.SSID.comparator() instanceof SortBy.SSIDComparator);
         assertTrue(SortBy.CHANNEL.comparator() instanceof SortBy.ChannelComparator);
     }
 
-    @Test
-    public void testFind() throws Exception {
-        assertEquals(SortBy.STRENGTH, SortBy.find(-1));
-        assertEquals(SortBy.STRENGTH, SortBy.find(SortBy.values().length));
-
-        assertEquals(SortBy.STRENGTH, SortBy.find(SortBy.STRENGTH.ordinal()));
-        assertEquals(SortBy.SSID, SortBy.find(SortBy.SSID.ordinal()));
-        assertEquals(SortBy.CHANNEL, SortBy.find(SortBy.CHANNEL.ordinal()));
-    }
 }

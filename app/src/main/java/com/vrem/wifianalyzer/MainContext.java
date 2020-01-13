@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,24 +19,30 @@
 package com.vrem.wifianalyzer;
 
 import android.content.Context;
-import android.net.wifi.WifiManager;
+import android.content.res.Resources;
 import android.os.Handler;
-import android.support.annotation.NonNull;
+import android.view.LayoutInflater;
 
+import com.vrem.wifianalyzer.settings.Repository;
 import com.vrem.wifianalyzer.settings.Settings;
-import com.vrem.wifianalyzer.vendor.model.Database;
+import com.vrem.wifianalyzer.settings.SettingsFactory;
 import com.vrem.wifianalyzer.vendor.model.VendorService;
-import com.vrem.wifianalyzer.wifi.scanner.Scanner;
+import com.vrem.wifianalyzer.vendor.model.VendorServiceFactory;
+import com.vrem.wifianalyzer.wifi.filter.adapter.FilterAdapter;
+import com.vrem.wifianalyzer.wifi.scanner.ScannerService;
+import com.vrem.wifianalyzer.wifi.scanner.ScannerServiceFactory;
+
+import androidx.annotation.NonNull;
 
 public enum MainContext {
     INSTANCE;
 
     private Settings settings;
     private MainActivity mainActivity;
-    private Scanner scanner;
+    private ScannerService scannerService;
     private VendorService vendorService;
-    private Database database;
     private Configuration configuration;
+    private FilterAdapter filterAdapter;
 
     public Settings getSettings() {
         return settings;
@@ -54,20 +60,12 @@ public enum MainContext {
         this.vendorService = vendorService;
     }
 
-    public Scanner getScanner() {
-        return scanner;
+    public ScannerService getScannerService() {
+        return scannerService;
     }
 
-    void setScanner(Scanner scanner) {
-        this.scanner = scanner;
-    }
-
-    public Database getDatabase() {
-        return database;
-    }
-
-    void setDatabase(Database database) {
-        this.database = database;
+    void setScannerService(ScannerService scannerService) {
+        this.scannerService = scannerService;
     }
 
     public MainActivity getMainActivity() {
@@ -78,6 +76,18 @@ public enum MainContext {
         this.mainActivity = mainActivity;
     }
 
+    public Context getContext() {
+        return mainActivity.getApplicationContext();
+    }
+
+    public Resources getResources() {
+        return getContext().getResources();
+    }
+
+    public LayoutInflater getLayoutInflater() {
+        return mainActivity.getLayoutInflater();
+    }
+
     public Configuration getConfiguration() {
         return configuration;
     }
@@ -86,17 +96,27 @@ public enum MainContext {
         this.configuration = configuration;
     }
 
-    void initialize(@NonNull MainActivity mainActivity, boolean isLargeScreenLayout, boolean isDevelopment) {
-        WifiManager wifiManager = (WifiManager) mainActivity.getSystemService(Context.WIFI_SERVICE);
+    public FilterAdapter getFilterAdapter() {
+        return filterAdapter;
+    }
+
+    void setFilterAdapter(FilterAdapter filterAdapter) {
+        this.filterAdapter = filterAdapter;
+    }
+
+    void initialize(@NonNull MainActivity mainActivity, boolean largeScreen) {
+        Context applicationContext = mainActivity.getApplicationContext();
         Handler handler = new Handler();
-        Settings settings = new Settings(mainActivity);
-        Configuration configuration = new Configuration(isLargeScreenLayout, isDevelopment);
+        Repository repository = new Repository(applicationContext);
+        Settings currentSettings = SettingsFactory.make(repository);
+        Configuration currentConfiguration = new Configuration(largeScreen);
 
         setMainActivity(mainActivity);
-        setConfiguration(configuration);
-        setDatabase(new Database(mainActivity));
-        setSettings(settings);
-        setVendorService(new VendorService());
-        setScanner(new Scanner(wifiManager, handler, settings));
+        setConfiguration(currentConfiguration);
+        setSettings(currentSettings);
+        setVendorService(VendorServiceFactory.makeVendorService(mainActivity.getResources()));
+        setScannerService(ScannerServiceFactory.makeScannerService(mainActivity, handler, currentSettings));
+        setFilterAdapter(new FilterAdapter(currentSettings));
     }
+
 }

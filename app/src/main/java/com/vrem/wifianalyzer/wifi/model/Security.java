@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,55 +18,114 @@
 
 package com.vrem.wifianalyzer.wifi.model;
 
+import com.vrem.util.EnumUtils;
 import com.vrem.wifianalyzer.R;
 
-import java.util.ArrayList;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.collections4.Predicate;
+import org.apache.commons.collections4.PredicateUtils;
+import org.apache.commons.collections4.Transformer;
+
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
+import androidx.annotation.NonNull;
+
 public enum Security {
-    // weak getSecurity first - keep this order
-    NONE(R.drawable.ic_lock_open_black_18dp),
-    WPS(R.drawable.ic_lock_outline_black_18dp),
-    WEP(R.drawable.ic_lock_outline_black_18dp),
-    WPA(R.drawable.ic_lock_black_18dp),
-    WPA2(R.drawable.ic_lock_black_18dp);
+    NONE(R.drawable.ic_lock_open),
+    WPS(R.drawable.ic_lock_outline),
+    WEP(R.drawable.ic_lock_outline),
+    WPA(R.drawable.ic_lock),
+    WPA2(R.drawable.ic_lock),
+    WPA3(R.drawable.ic_lock, Constants.RSN);
 
     private final int imageResource;
+    private final String additional;
 
     Security(int imageResource) {
+        this(imageResource, null);
+    }
+
+    Security(int imageResource, String additional) {
         this.imageResource = imageResource;
+        this.additional = additional;
     }
 
-    public static List<Security> findAll(String capabilities) {
-        Set<Security> results = new TreeSet<>();
-        if (capabilities != null) {
-            String[] values = capabilities.toUpperCase()
-                .replace("][", "-").replace("]", "").replace("[", "").split("-");
-            for (String value : values) {
-                try {
-                    results.add(Security.valueOf(value));
-                } catch (Exception e) {
-                    // skip getCapabilities that are not getSecurity
-                }
-            }
+    @NonNull
+    public static Set<Security> findAll(String capabilities) {
+        if (capabilities == null) {
+            return new TreeSet<>();
         }
-        return new ArrayList<>(results);
+        return new TreeSet<>(
+            CollectionUtils.select(
+                CollectionUtils.collect(parseCapabilities(capabilities), new SecurityTransformer()),
+                PredicateUtils.notNullPredicate()
+            )
+        );
     }
 
+    private static List<String> parseCapabilities(String capabilities) {
+        return Arrays.asList(capabilities
+            .toUpperCase(Locale.getDefault())
+            .replace("][", "-")
+            .replace("]", "")
+            .replace("[", "")
+            .split("-")
+        );
+    }
+
+    @NonNull
     public static Security findOne(String capabilities) {
-        List<Security> securities = findAll(capabilities);
-        for (Security security : Security.values()) {
-            if (securities.contains(security)) {
-                return security;
-            }
-        }
-        return Security.NONE;
+        Security result = IterableUtils.find(EnumUtils.values(Security.class), new SecurityPredicate(findAll(capabilities)));
+        return result == null ? Security.NONE : result;
     }
 
-    public int imageResource() {
+    public int getImageResource() {
         return imageResource;
     }
 
+    private static class SecurityPredicate implements Predicate<Security> {
+        private final Set<Security> securities;
+
+        private SecurityPredicate(@NonNull Set<Security> securities) {
+            this.securities = securities;
+        }
+
+        @Override
+        public boolean evaluate(Security security) {
+            return securities.contains(security);
+        }
+    }
+
+    private static class SecurityAdditionalPredicate implements Predicate<Security> {
+        private final String value;
+
+        private SecurityAdditionalPredicate(@NonNull String value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean evaluate(Security security) {
+            return value.equals(security.additional);
+        }
+    }
+
+    private static class SecurityTransformer implements Transformer<String, Security> {
+        @Override
+        public Security transform(String input) {
+            try {
+                return Security.valueOf(input);
+            } catch (Exception e) {
+                return IterableUtils.find(EnumUtils.values(Security.class), new SecurityAdditionalPredicate(input));
+            }
+        }
+    }
+
+    private static class Constants {
+        static final String RSN = "RSN";
+    }
 }

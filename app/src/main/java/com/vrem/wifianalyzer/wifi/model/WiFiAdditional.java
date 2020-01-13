@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,42 +18,34 @@
 
 package com.vrem.wifianalyzer.wifi.model;
 
-import android.support.annotation.NonNull;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import androidx.annotation.NonNull;
+
 public class WiFiAdditional {
-    public static final WiFiAdditional EMPTY = new WiFiAdditional(StringUtils.EMPTY, false);
+    public static final WiFiAdditional EMPTY = new WiFiAdditional(StringUtils.EMPTY);
 
     private final String vendorName;
-    private final boolean configuredNetwork;
     private final WiFiConnection wiFiConnection;
 
-    private WiFiAdditional(@NonNull String vendorName, @NonNull WiFiConnection wiFiConnection, boolean configuredNetwork) {
+    public WiFiAdditional(@NonNull String vendorName, @NonNull WiFiConnection wiFiConnection) {
         this.vendorName = vendorName;
         this.wiFiConnection = wiFiConnection;
-        this.configuredNetwork = configuredNetwork;
     }
 
-    public WiFiAdditional(@NonNull String vendorName, boolean configuredNetwork) {
-        this(vendorName, WiFiConnection.EMPTY, configuredNetwork);
+    public WiFiAdditional(@NonNull String vendorName) {
+        this(vendorName, WiFiConnection.EMPTY);
     }
 
-    public WiFiAdditional(@NonNull String vendorName, @NonNull WiFiConnection wiFiConnection) {
-        this(vendorName, wiFiConnection, true);
-    }
-
+    @NonNull
     public String getVendorName() {
         return vendorName;
     }
 
+    @NonNull
     public WiFiConnection getWiFiConnection() {
         return wiFiConnection;
-    }
-
-    public boolean isConfiguredNetwork() {
-        return configuredNetwork;
     }
 
     @Override

@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 package com.vrem.wifianalyzer.vendor;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,52 +28,38 @@ import android.widget.TextView;
 
 import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.R;
+import com.vrem.wifianalyzer.vendor.model.VendorService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedMap;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 class VendorAdapter extends ArrayAdapter<String> {
-    private SortedMap<String, List<String>> vendors;
+    private final VendorService vendorService;
 
-    VendorAdapter(@NonNull Context context, @NonNull SortedMap<String, List<String>> vendors) {
-        super(context, R.layout.vendor_details, new ArrayList<>(vendors.keySet()));
-        this.vendors = vendors;
+    VendorAdapter(@NonNull Context context, @NonNull VendorService vendorService) {
+        super(context, R.layout.vendor_details, vendorService.findVendors());
+        this.vendorService = vendorService;
     }
 
     @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            LayoutInflater layoutInflater = MainContext.INSTANCE.getMainActivity().getLayoutInflater();
+            LayoutInflater layoutInflater = MainContext.INSTANCE.getLayoutInflater();
             view = layoutInflater.inflate(R.layout.vendor_details, parent, false);
         }
-        String name = getItem(position);
-        ((TextView) view.findViewById(R.id.vendor_name)).setText(name);
-
-        StringBuilder stringBuilder = new StringBuilder();
-        for (String mac : vendors.get(name)) {
-            if (stringBuilder.length() > 0) {
-                stringBuilder.append(", ");
-            }
-            String macAddress =
-                mac.length() < 6
-                    ? "*" + mac + "*"
-                    : String.format("%s:%s:%s", mac.substring(0, 2), mac.substring(2, 4), mac.substring(4, 6));
-            stringBuilder.append(macAddress);
-        }
-        ((TextView) view.findViewById(R.id.vendor_macs)).setText(stringBuilder.toString());
+        String vendorName = getItem(position);
+        view.<TextView>findViewById(R.id.vendor_name)
+            .setText(vendorName);
+        view.<TextView>findViewById(R.id.vendor_macs)
+            .setText(TextUtils.join(", ", vendorService.findMacAddresses(vendorName)));
         return view;
     }
 
-    SortedMap<String, List<String>> getVendors() {
-        return vendors;
+    void update(@NonNull String filter) {
+        clear();
+        addAll(vendorService.findVendors(filter));
     }
 
-    public void setVendors(@NonNull SortedMap<String, List<String>> vendors) {
-        this.vendors = vendors;
-        clear();
-        addAll(new ArrayList<>(vendors.keySet()));
-    }
 }

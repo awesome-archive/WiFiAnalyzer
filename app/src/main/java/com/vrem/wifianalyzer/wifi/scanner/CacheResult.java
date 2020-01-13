@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,8 @@
 package com.vrem.wifianalyzer.wifi.scanner;
 
 import android.net.wifi.ScanResult;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 class CacheResult {
     private final ScanResult scanResult;
@@ -30,6 +31,7 @@ class CacheResult {
         this.levelAverage = levelAverage;
     }
 
+    @NonNull
     ScanResult getScanResult() {
         return scanResult;
     }

@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,86 +19,86 @@
 package com.vrem.wifianalyzer.wifi.scanner;
 
 import android.net.wifi.ScanResult;
-import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 
 import com.vrem.wifianalyzer.settings.Settings;
 import com.vrem.wifianalyzer.wifi.model.WiFiData;
 
+import org.apache.commons.collections4.Closure;
+import org.apache.commons.collections4.IterableUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class Scanner {
+import androidx.annotation.NonNull;
+
+class Scanner implements ScannerService {
     private final List<UpdateNotifier> updateNotifiers;
-    private final WifiManager wifiManager;
+    private final Settings settings;
     private Transformer transformer;
     private WiFiData wiFiData;
+    private WiFiManagerWrapper wiFiManagerWrapper;
     private Cache cache;
     private PeriodicScan periodicScan;
 
-    public Scanner(@NonNull WifiManager wifiManager, @NonNull Handler handler, @NonNull Settings settings) {
+    Scanner(@NonNull WiFiManagerWrapper wiFiManagerWrapper, @NonNull Handler handler, @NonNull Settings settings) {
         this.updateNotifiers = new ArrayList<>();
-        this.wifiManager = wifiManager;
+        this.wiFiManagerWrapper = wiFiManagerWrapper;
+        this.settings = settings;
         this.wiFiData = WiFiData.EMPTY;
         this.setTransformer(new Transformer());
         this.setCache(new Cache());
         this.periodicScan = new PeriodicScan(this, handler, settings);
     }
 
+    @Override
     public void update() {
-        performWiFiScan();
-        for (UpdateNotifier updateNotifier : updateNotifiers) {
-            updateNotifier.update(wiFiData);
-        }
+        wiFiManagerWrapper.enableWiFi();
+        scanResults();
+        wiFiData = transformer.transformToWiFiData(cache.getScanResults(), cache.getWifiInfo());
+        IterableUtils.forEach(updateNotifiers, new UpdateClosure());
     }
 
-    private void performWiFiScan() {
-        List<ScanResult> scanResults = new ArrayList<>();
-        WifiInfo wifiInfo = null;
-        List<WifiConfiguration> configuredNetworks = null;
-        try {
-            if (!wifiManager.isWifiEnabled()) {
-                wifiManager.setWifiEnabled(true);
-            }
-            if (wifiManager.startScan()) {
-                scanResults = wifiManager.getScanResults();
-            }
-            wifiInfo = wifiManager.getConnectionInfo();
-            configuredNetworks = wifiManager.getConfiguredNetworks();
-        } catch (Exception e) {
-            // critical error: set to no results and do not die
-        }
-        cache.add(scanResults);
-        wiFiData = transformer.transformToWiFiData(cache.getScanResults(), wifiInfo, configuredNetworks);
-    }
-
+    @Override
+    @NonNull
     public WiFiData getWiFiData() {
         return wiFiData;
     }
 
+    @Override
     public void register(@NonNull UpdateNotifier updateNotifier) {
         updateNotifiers.add(updateNotifier);
     }
 
+    @Override
     public void unregister(@NonNull UpdateNotifier updateNotifier) {
         updateNotifiers.remove(updateNotifier);
     }
 
+    @Override
     public void pause() {
         periodicScan.stop();
     }
 
+    @Override
     public boolean isRunning() {
         return periodicScan.isRunning();
     }
 
+    @Override
     public void resume() {
         periodicScan.start();
     }
 
+    @Override
+    public void stop() {
+        if (settings.isWiFiOffOnExit()) {
+            wiFiManagerWrapper.disableWiFi();
+        }
+    }
+
+    @NonNull
     PeriodicScan getPeriodicScan() {
         return periodicScan;
     }
@@ -115,7 +115,27 @@ public class Scanner {
         this.transformer = transformer;
     }
 
+    @NonNull
     List<UpdateNotifier> getUpdateNotifiers() {
         return updateNotifiers;
+    }
+
+    private void scanResults() {
+        try {
+            if (wiFiManagerWrapper.startScan()) {
+                List<ScanResult> scanResults = wiFiManagerWrapper.scanResults();
+                WifiInfo wifiInfo = wiFiManagerWrapper.wiFiInfo();
+                cache.add(scanResults, wifiInfo);
+            }
+        } catch (Exception e) {
+            // critical error: do not die
+        }
+    }
+
+    private class UpdateClosure implements Closure<UpdateNotifier> {
+        @Override
+        public void execute(UpdateNotifier updateNotifier) {
+            updateNotifier.update(wiFiData);
+        }
     }
 }

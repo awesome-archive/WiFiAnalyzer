@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,34 +19,50 @@
 package com.vrem.wifianalyzer.settings;
 
 import android.content.Context;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 
+import com.vrem.util.LocaleUtils;
+import com.vrem.wifianalyzer.MainContext;
 import com.vrem.wifianalyzer.wifi.band.WiFiChannelCountry;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Transformer;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+
+import androidx.annotation.NonNull;
 
 public class CountryPreference extends CustomPreference {
     public CountryPreference(@NonNull Context context, AttributeSet attrs) {
-        super(context, attrs, getData(), getDefault(context));
+        super(context, attrs, getData(), LocaleUtils.getDefaultCountryCode());
     }
 
+    @NonNull
     private static List<Data> getData() {
-        List<Data> result = new ArrayList<>();
-        for (WiFiChannelCountry wiFiChannelCountry : WiFiChannelCountry.getAll()) {
-            result.add(new Data(wiFiChannelCountry.getCountryCode(), wiFiChannelCountry.getCountryName()));
-        }
-        Collections.sort(result);
-        return result;
+        List<Data> results = new ArrayList<>(CollectionUtils.collect(WiFiChannelCountry.getAll(), new ToData()));
+        Collections.sort(results);
+        return results;
     }
 
-    private static String getDefault(@NonNull Context context) {
-        Resources resources = context.getResources();
-        Configuration configuration = resources.getConfiguration();
-        return configuration.locale.getCountry();
+    private static class ToData implements Transformer<WiFiChannelCountry, Data> {
+        private final Locale currentLocale;
+
+        private ToData() {
+            this.currentLocale = getLocale();
+        }
+
+        private Locale getLocale() {
+            Settings settings = MainContext.INSTANCE.getSettings();
+            return settings == null ? Locale.US : settings.getLanguageLocale();
+        }
+
+        @Override
+        public Data transform(WiFiChannelCountry input) {
+            return new Data(input.getCountryCode(), input.getCountryName(currentLocale));
+        }
     }
+
 }

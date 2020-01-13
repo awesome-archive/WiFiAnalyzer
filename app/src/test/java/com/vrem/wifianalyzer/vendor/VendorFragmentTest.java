@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,30 +18,35 @@
 
 package com.vrem.wifianalyzer.vendor;
 
-import com.vrem.wifianalyzer.BuildConfig;
+import android.os.Build;
+
 import com.vrem.wifianalyzer.MainContextHelper;
 import com.vrem.wifianalyzer.RobolectricUtil;
+import com.vrem.wifianalyzer.vendor.VendorFragment.Listener;
 import com.vrem.wifianalyzer.vendor.model.VendorService;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.support.v4.SupportFragmentTestUtil;
+import org.robolectric.annotation.LooperMode;
 
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.Collections;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.robolectric.annotation.LooperMode.Mode.PAUSED;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
+@RunWith(AndroidJUnit4.class)
+@Config(sdk = Build.VERSION_CODES.P)
+@LooperMode(PAUSED)
 public class VendorFragmentTest {
 
     private VendorFragment fixture;
@@ -50,10 +55,12 @@ public class VendorFragmentTest {
     @Before
     public void setUp() {
         RobolectricUtil.INSTANCE.getActivity();
-
         vendorService = MainContextHelper.INSTANCE.getVendorService();
 
+        when(vendorService.findVendors()).thenReturn(Collections.emptyList());
         fixture = new VendorFragment();
+        RobolectricUtil.INSTANCE.startFragment(fixture);
+
     }
 
     @After
@@ -62,14 +69,37 @@ public class VendorFragmentTest {
     }
 
     @Test
-    public void testOnCreateView() throws Exception {
-        // setup
-        SortedMap<String, List<String>> vendors = new TreeMap<>();
-        when(vendorService.findAll()).thenReturn(vendors);
-        // execute
-        SupportFragmentTestUtil.startFragment(fixture);
+    public void testOnCreateView() {
         // validate
         assertNotNull(fixture);
-        verify(vendorService, atLeastOnce()).findAll();
+        verify(vendorService).findVendors();
     }
+
+    @Test
+    public void testListenerOnQueryTextChange() {
+        // setup
+        String values = "     ABS       ADF      ";
+        String expected = "ABS ADF";
+        VendorAdapter vendorAdapter = mock(VendorAdapter.class);
+        Listener fixture = new Listener(vendorAdapter);
+        // execute
+        boolean actual = fixture.onQueryTextChange(values);
+        // verify
+        assertTrue(actual);
+        verify(vendorAdapter).update(expected);
+    }
+
+    @Test
+    public void testListenerOnQueryTextChangeWithNull() {
+        // setup
+        VendorAdapter vendorAdapter = mock(VendorAdapter.class);
+        Listener fixture = new Listener(vendorAdapter);
+        // execute
+        boolean actual = fixture.onQueryTextChange(null);
+        // verify
+        assertTrue(actual);
+        verify(vendorAdapter).update(StringUtils.EMPTY);
+    }
+
+
 }

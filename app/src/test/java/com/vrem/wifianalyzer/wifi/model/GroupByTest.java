@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ package com.vrem.wifianalyzer.wifi.model;
 import com.vrem.wifianalyzer.wifi.band.WiFiWidth;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,43 +34,35 @@ public class GroupByTest {
     @Before
     public void setUp() {
         wiFiDetail1 = new WiFiDetail("SSID1", "BSSID1", StringUtils.EMPTY,
-            new WiFiSignal(2462, 2462, WiFiWidth.MHZ_20, -35), WiFiAdditional.EMPTY);
+            new WiFiSignal(2462, 2462, WiFiWidth.MHZ_20, -35, true),
+            WiFiAdditional.EMPTY);
         wiFiDetail2 = new WiFiDetail("SSID2", "BSSID2", StringUtils.EMPTY,
-            new WiFiSignal(2432, 2432, WiFiWidth.MHZ_20, -55), WiFiAdditional.EMPTY);
+            new WiFiSignal(2432, 2432, WiFiWidth.MHZ_20, -55, true),
+            WiFiAdditional.EMPTY);
     }
 
 
     @Test
-    public void testGroupByNumber() throws Exception {
+    public void testGroupByNumber() {
         assertEquals(3, GroupBy.values().length);
     }
 
     @Test
-    public void testFind() throws Exception {
-        Assert.assertEquals(GroupBy.NONE, GroupBy.find(-1));
-        assertEquals(GroupBy.NONE, GroupBy.find(GroupBy.values().length));
-
-        assertEquals(GroupBy.NONE, GroupBy.find(GroupBy.NONE.ordinal()));
-        assertEquals(GroupBy.SSID, GroupBy.find(GroupBy.SSID.ordinal()));
-        assertEquals(GroupBy.CHANNEL, GroupBy.find(GroupBy.CHANNEL.ordinal()));
+    public void testGroupBy() {
+        assertTrue(GroupBy.NONE.groupByComparator() instanceof GroupBy.None);
+        assertTrue(GroupBy.SSID.groupByComparator() instanceof GroupBy.SSIDGroupBy);
+        assertTrue(GroupBy.CHANNEL.groupByComparator() instanceof GroupBy.ChannelGroupBy);
     }
 
     @Test
-    public void testGroupBy() throws Exception {
-        assertTrue(GroupBy.NONE.groupBy() instanceof GroupBy.None);
-        assertTrue(GroupBy.SSID.groupBy() instanceof GroupBy.SSIDGroupBy);
-        assertTrue(GroupBy.CHANNEL.groupBy() instanceof GroupBy.ChannelGroupBy);
+    public void testSortOrder() {
+        assertTrue(GroupBy.NONE.sortOrderComparator() instanceof GroupBy.None);
+        assertTrue(GroupBy.SSID.sortOrderComparator() instanceof GroupBy.SSIDSortOrder);
+        assertTrue(GroupBy.CHANNEL.sortOrderComparator() instanceof GroupBy.ChannelSortOrder);
     }
 
     @Test
-    public void testSortOrder() throws Exception {
-        assertTrue(GroupBy.NONE.sortOrder() instanceof GroupBy.None);
-        assertTrue(GroupBy.SSID.sortOrder() instanceof GroupBy.SSIDSortOrder);
-        assertTrue(GroupBy.CHANNEL.sortOrder() instanceof GroupBy.ChannelSortOrder);
-    }
-
-    @Test
-    public void testNoneComparator() throws Exception {
+    public void testNoneComparator() {
         // setup
         GroupBy.None comparator = new GroupBy.None();
         // execute & validate
@@ -82,7 +73,7 @@ public class GroupByTest {
     }
 
     @Test
-    public void testChannelGroupByComparator() throws Exception {
+    public void testChannelGroupByComparator() {
         // setup
         GroupBy.ChannelGroupBy comparator = new GroupBy.ChannelGroupBy();
         // execute & validate
@@ -92,7 +83,7 @@ public class GroupByTest {
     }
 
     @Test
-    public void testChannelSortOrder() throws Exception {
+    public void testChannelSortOrder() {
         // setup
         GroupBy.ChannelSortOrder comparator = new GroupBy.ChannelSortOrder();
         // execute & validate
@@ -102,7 +93,7 @@ public class GroupByTest {
     }
 
     @Test
-    public void testSSIDGroupByComparator() throws Exception {
+    public void testSSIDGroupByComparator() {
         // setup
         GroupBy.SSIDGroupBy comparator = new GroupBy.SSIDGroupBy();
         // execute & validate
@@ -112,7 +103,7 @@ public class GroupByTest {
     }
 
     @Test
-    public void testSSIDSortOrderComparatorEquals() throws Exception {
+    public void testSSIDSortOrderComparatorEquals() {
         GroupBy.SSIDSortOrder comparator = new GroupBy.SSIDSortOrder();
         // execute & validate
         assertEquals(0, comparator.compare(wiFiDetail1, wiFiDetail1));

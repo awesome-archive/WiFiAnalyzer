@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ WiFi Analyzer
-  ~ Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+  ~ WiFiAnalyzer
+  ~ Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -23,9 +23,13 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
+    <dimen name="activity_vertical_half_margin">8dp</dimen>
+
     <dimen name="list_view_item_horizontal_spacer">4dp</dimen>
     <dimen name="list_view_item_horizontal_tab">24dp</dimen>
 
-    <dimen name="nav_header_vertical_spacing">16dp</dimen>
-    <dimen name="nav_header_height">140dp</dimen>
+    <dimen name="nav_header_height">110dp</dimen>
+
+    <dimen name="icon_small">12dp</dimen>
+    <dimen name="icon_large">36dp</dimen>
 </resources>

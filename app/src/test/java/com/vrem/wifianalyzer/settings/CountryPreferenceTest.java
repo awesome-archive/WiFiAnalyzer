@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,68 +18,69 @@
 
 package com.vrem.wifianalyzer.settings;
 
-import com.vrem.wifianalyzer.BuildConfig;
+import android.os.Build;
+
 import com.vrem.wifianalyzer.MainActivity;
 import com.vrem.wifianalyzer.RobolectricUtil;
 import com.vrem.wifianalyzer.wifi.band.WiFiChannelCountry;
 
-import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.LooperMode;
 
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.robolectric.annotation.LooperMode.Mode.PAUSED;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
+@RunWith(AndroidJUnit4.class)
+@Config(sdk = Build.VERSION_CODES.P)
+@LooperMode(PAUSED)
 public class CountryPreferenceTest {
 
     private List<WiFiChannelCountry> countries;
     private CountryPreference fixture;
+    private Locale currentLocale;
 
     @Before
     public void setUp() {
         MainActivity mainActivity = RobolectricUtil.INSTANCE.getActivity();
         fixture = new CountryPreference(mainActivity, Robolectric.buildAttributeSet().build());
 
+        currentLocale = Locale.getDefault();
         countries = WiFiChannelCountry.getAll();
-        Collections.sort(countries, new Comparator<WiFiChannelCountry>() {
-            @Override
-            public int compare(WiFiChannelCountry lhs, WiFiChannelCountry rhs) {
-                return new CompareToBuilder()
-                    .append(lhs.getCountryName(), rhs.getCountryName())
-                    .append(lhs.getCountryCode(), rhs.getCountryCode())
-                    .toComparison();
-            }
-        });
     }
 
     @Test
-    public void testGetEntries() throws Exception {
+    public void testGetEntries() {
         // execute
-        CharSequence[] actual = fixture.getEntries();
+        List<CharSequence> actual = Arrays.asList(fixture.getEntries());
         // validate
-        int expectedSize = countries.size();
-        assertEquals(expectedSize, actual.length);
-        assertEquals(countries.get(0).getCountryName(), actual[0]);
-        assertEquals(countries.get(expectedSize - 1).getCountryName(), actual[expectedSize - 1]);
+        assertEquals(countries.size(), actual.size());
+        for (WiFiChannelCountry country : countries) {
+            String countryName = country.getCountryName(currentLocale);
+            assertTrue(countryName, actual.contains(countryName));
+        }
     }
 
     @Test
-    public void testGetEntryValues() throws Exception {
+    public void testGetEntryValues() {
         // execute
-        CharSequence[] actual = fixture.getEntryValues();
+        List<CharSequence> actual = Arrays.asList(fixture.getEntryValues());
         // validate
-        int expectedSize = countries.size();
-        assertEquals(expectedSize, actual.length);
-        assertEquals(countries.get(0).getCountryCode(), actual[0]);
-        assertEquals(countries.get(expectedSize - 1).getCountryCode(), actual[expectedSize - 1]);
+        assertEquals(countries.size(), actual.size());
+        for (WiFiChannelCountry country : countries) {
+            String countryCode = country.getCountryCode();
+            assertTrue(countryCode, actual.contains(countryCode));
+        }
     }
+
 }

@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,40 +18,27 @@
 
 package com.vrem.wifianalyzer.wifi.band;
 
-import android.support.annotation.NonNull;
+import com.vrem.wifianalyzer.R;
+
+import androidx.annotation.NonNull;
 
 public enum WiFiBand {
-    GHZ2("2.4 GHz", new WiFiChannelsGHZ2()),
-    GHZ5("5 GHz", new WiFiChannelsGHZ5());
+    GHZ2(R.string.wifi_band_2ghz, new WiFiChannelsGHZ2()),
+    GHZ5(R.string.wifi_band_5ghz, new WiFiChannelsGHZ5());
 
-    private final String band;
+    private final int textResource;
     private final WiFiChannels wiFiChannels;
 
-    WiFiBand(@NonNull String band, @NonNull WiFiChannels wiFiChannels) {
-        this.band = band;
+    WiFiBand(int textResource, @NonNull WiFiChannels wiFiChannels) {
+        this.textResource = textResource;
         this.wiFiChannels = wiFiChannels;
     }
 
-    public static WiFiBand findByFrequency(int frequency) {
-        for (WiFiBand wiFiBand : WiFiBand.values()) {
-            if (wiFiBand.getWiFiChannels().isInRange(frequency)) {
-                return wiFiBand;
-            }
-        }
-        return WiFiBand.GHZ2;
+    public int getTextResource() {
+        return textResource;
     }
 
-    public static WiFiBand find(int index) {
-        if (index < 0 || index >= values().length) {
-            return GHZ2;
-        }
-        return values()[index];
-    }
-
-    public String getBand() {
-        return band;
-    }
-
+    @NonNull
     public WiFiBand toggle() {
         return isGHZ5() ? WiFiBand.GHZ2 : WiFiBand.GHZ5;
     }
@@ -60,6 +47,7 @@ public enum WiFiBand {
         return WiFiBand.GHZ5.equals(this);
     }
 
+    @NonNull
     public WiFiChannels getWiFiChannels() {
         return wiFiChannels;
     }

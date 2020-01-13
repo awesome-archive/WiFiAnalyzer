@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,37 +19,38 @@
 package com.vrem.wifianalyzer.wifi.scanner;
 
 import android.net.wifi.ScanResult;
-import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Handler;
 
-import com.vrem.wifianalyzer.Configuration;
 import com.vrem.wifianalyzer.settings.Settings;
 import com.vrem.wifianalyzer.wifi.model.WiFiData;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ScannerTest {
+
     @Mock
     private Handler handler;
     @Mock
     private Settings settings;
     @Mock
-    private WifiManager wifiManager;
+    private WiFiManagerWrapper wiFiManagerWrapper;
     @Mock
     private UpdateNotifier updateNotifier1;
     @Mock
@@ -66,22 +67,18 @@ public class ScannerTest {
     private WiFiData wiFiData;
     @Mock
     private PeriodicScan periodicScan;
-    @Mock
-    private Configuration configuration;
 
     private List<ScanResult> scanResults;
     private List<CacheResult> cacheResults;
-    private List<WifiConfiguration> configuredNetworks;
 
     private Scanner fixture;
 
     @Before
     public void setUp() {
-        scanResults = new ArrayList<>();
-        cacheResults = new ArrayList<>();
-        configuredNetworks = new ArrayList<>();
+        scanResults = Collections.emptyList();
+        cacheResults = Collections.emptyList();
 
-        fixture = new Scanner(wifiManager, handler, settings);
+        fixture = new Scanner(wiFiManagerWrapper, handler, settings);
         fixture.setCache(cache);
         fixture.setTransformer(transformer);
 
@@ -90,13 +87,22 @@ public class ScannerTest {
         fixture.register(updateNotifier3);
     }
 
+    @After
+    public void tearDown() {
+        verifyNoMoreInteractions(settings);
+        verifyNoMoreInteractions(wiFiManagerWrapper);
+        verifyNoMoreInteractions(cache);
+        verifyNoMoreInteractions(transformer);
+        verifyNoMoreInteractions(periodicScan);
+    }
+
     @Test
-    public void testPeriodicScanIsSet() throws Exception {
+    public void testPeriodicScanIsSet() {
         assertNotNull(fixture.getPeriodicScan());
     }
 
     @Test
-    public void testRegister() throws Exception {
+    public void testRegister() {
         // setup
         assertEquals(3, fixture.getUpdateNotifiers().size());
         // execute
@@ -106,7 +112,7 @@ public class ScannerTest {
     }
 
     @Test
-    public void testUnregister() throws Exception {
+    public void testUnregister() {
         // setup
         assertEquals(3, fixture.getUpdateNotifiers().size());
         // execute
@@ -116,81 +122,91 @@ public class ScannerTest {
     }
 
     @Test
-    public void testUpdateWithWiFiData() throws Exception {
+    public void testUpdate() {
         // setup
         withCache();
         withTransformer();
-        withWiFiManager();
+        withWiFiManagerWrapper();
         // execute
         fixture.update();
         // validate
         assertEquals(wiFiData, fixture.getWiFiData());
         verifyCache();
-        verifyTransfomer();
-        verifyWiFiManager();
+        verifyTransformer();
+        verifyWiFiManagerWrapper();
         verify(updateNotifier1).update(wiFiData);
         verify(updateNotifier2).update(wiFiData);
         verify(updateNotifier3).update(wiFiData);
     }
 
     @Test
-    public void testUpdateWithWiFiManager() throws Exception {
+    public void testStopWithIsWiFiOffOnExitTurnsOffWiFi() {
         // setup
-        withCache();
-        withWiFiManager();
+        when(settings.isWiFiOffOnExit()).thenReturn(true);
         // execute
-        fixture.update();
+        fixture.stop();
         // validate
-        verifyWiFiManager();
+        verify(settings).isWiFiOffOnExit();
+        verify(wiFiManagerWrapper).disableWiFi();
     }
 
     @Test
-    public void testUpdateWithCache() throws Exception {
+    public void testStopDoesNotTurnsOffWiFi() {
         // setup
-        withCache();
-        withWiFiManager();
+        when(settings.isWiFiOffOnExit()).thenReturn(false);
         // execute
-        fixture.update();
+        fixture.stop();
         // validate
-        verifyCache();
+        verify(settings).isWiFiOffOnExit();
+        verify(wiFiManagerWrapper, never()).enableWiFi();
     }
 
     private void withCache() {
         when(cache.getScanResults()).thenReturn(cacheResults);
+        when(cache.getWifiInfo()).thenReturn(wifiInfo);
     }
 
     private void withTransformer() {
-        when(transformer.transformToWiFiData(cacheResults, wifiInfo, configuredNetworks)).thenReturn(wiFiData);
+        when(transformer.transformToWiFiData(cacheResults, wifiInfo)).thenReturn(wiFiData);
     }
 
     private void verifyCache() {
-        verify(cache).add(scanResults);
+        verify(cache).add(scanResults, wifiInfo);
         verify(cache).getScanResults();
+        verify(cache).getWifiInfo();
     }
 
-    private void verifyWiFiManager() {
-        verify(wifiManager).isWifiEnabled();
-        verify(wifiManager).setWifiEnabled(true);
-        verify(wifiManager).startScan();
-        verify(wifiManager).getScanResults();
-        verify(wifiManager).getConnectionInfo();
-        verify(wifiManager).getConfiguredNetworks();
+    private void verifyWiFiManagerWrapper() {
+        verify(wiFiManagerWrapper).enableWiFi();
+        verify(wiFiManagerWrapper).startScan();
+        verify(wiFiManagerWrapper).scanResults();
+        verify(wiFiManagerWrapper).wiFiInfo();
+
+        verifyWiFiManagerStartScan();
     }
 
-    private void withWiFiManager() {
-        when(wifiManager.isWifiEnabled()).thenReturn(false);
-        when(wifiManager.startScan()).thenReturn(true);
-        when(wifiManager.getScanResults()).thenReturn(scanResults);
-        when(wifiManager.getConnectionInfo()).thenReturn(wifiInfo);
-        when(wifiManager.getConfiguredNetworks()).thenReturn(configuredNetworks);
+    private void withWiFiManagerWrapper() {
+        when(wiFiManagerWrapper.startScan()).thenReturn(true);
+        when(wiFiManagerWrapper.scanResults()).thenReturn(scanResults);
+        when(wiFiManagerWrapper.wiFiInfo()).thenReturn(wifiInfo);
+
+        withWiFiManagerStartScan();
     }
 
-    private void verifyTransfomer() {
-        verify(transformer).transformToWiFiData(cacheResults, wifiInfo, configuredNetworks);
+    private void verifyWiFiManagerStartScan() {
+        verify(wiFiManagerWrapper).startScan();
+    }
+
+    private void withWiFiManagerStartScan() {
+        when(wiFiManagerWrapper.startScan()).thenReturn(true);
+    }
+
+    private void verifyTransformer() {
+        verify(transformer).transformToWiFiData(cacheResults, wifiInfo);
     }
 
     @Test
-    public void testPause() throws Exception {
+    public void testPause() {
         // setup
         fixture.setPeriodicScan(periodicScan);
         // execute
@@ -200,7 +216,7 @@ public class ScannerTest {
     }
 
     @Test
-    public void testResume() throws Exception {
+    public void testResume() {
         // setup
         fixture.setPeriodicScan(periodicScan);
         // execute

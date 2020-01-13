@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,86 +18,92 @@
 
 package com.vrem.wifianalyzer.vendor;
 
-import android.support.annotation.NonNull;
+import android.os.Build;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.vrem.wifianalyzer.BuildConfig;
 import com.vrem.wifianalyzer.MainActivity;
+import com.vrem.wifianalyzer.MainContextHelper;
 import com.vrem.wifianalyzer.R;
 import com.vrem.wifianalyzer.RobolectricUtil;
+import com.vrem.wifianalyzer.vendor.model.VendorService;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.LooperMode;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.when;
+import static org.robolectric.annotation.LooperMode.Mode.PAUSED;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
+@RunWith(AndroidJUnit4.class)
+@Config(sdk = Build.VERSION_CODES.P)
+@LooperMode(PAUSED)
 public class VendorAdapterTest {
-    private static final String VENDOR1 = "V1";
-    private static final String VENDOR2 = "V2";
-    private static final String VENDOR3 = "V3";
+    private static final String VENDOR_NAME1 = "N1";
+    private static final String VENDOR_NAME2 = "N2";
+    private static final String VENDOR_NAME3 = "N3";
 
+    private MainActivity mainActivity;
+    private VendorService vendorService;
+    private List<String> vendors;
     private VendorAdapter fixture;
-    private SortedMap<String, List<String>> vendors;
 
     @Before
     public void setUp() {
-        MainActivity mainActivity = RobolectricUtil.INSTANCE.getActivity();
-        vendors = withVendors();
-        fixture = new VendorAdapter(mainActivity, vendors);
+        mainActivity = RobolectricUtil.INSTANCE.getActivity();
+        vendorService = MainContextHelper.INSTANCE.getVendorService();
 
-        assertEquals(vendors, fixture.getVendors());
+        vendors = Arrays.asList(VENDOR_NAME1, VENDOR_NAME2, VENDOR_NAME3);
+        when(vendorService.findVendors()).thenReturn(vendors);
+
+        fixture = new VendorAdapter(mainActivity, vendorService);
+    }
+
+    @After
+    public void tearDown() {
+        MainContextHelper.INSTANCE.restore();
     }
 
     @Test
-    public void testConstructor() throws Exception {
-        assertEquals(vendors, fixture.getVendors());
+    public void testConstructor() {
+        assertEquals(vendors.size(), fixture.getCount());
+        assertEquals(vendors.get(0), fixture.getItem(0));
+        assertEquals(vendors.get(1), fixture.getItem(1));
+        assertEquals(vendors.get(2), fixture.getItem(2));
+        verify(vendorService).findVendors();
     }
 
     @Test
-    public void testGetView() throws Exception {
+    public void testGetView() {
         // setup
-        List<String> macs = vendors.get(VENDOR2);
-        String expected = String.format("%s:%s:%s", macs.get(0).substring(0, 2), macs.get(0).substring(2, 4), macs.get(0).substring(4, 6)) +
-            ", *" + macs.get(1) + "*, " +
-            String.format("%s:%s:%s", macs.get(2).substring(0, 2), macs.get(2).substring(2, 4), macs.get(2).substring(4, 6));
+        when(vendorService.findMacAddresses(VENDOR_NAME2)).thenReturn(Arrays.asList("VALUE1", "VALUE2", "VALUE3"));
+        String expected = "VALUE1, VALUE2, VALUE3";
+        ViewGroup viewGroup = mainActivity.findViewById(android.R.id.content);
         // execute
-        View actual = fixture.getView(1, null, null);
+        View actual = fixture.getView(1, null, viewGroup);
         // validate
         assertNotNull(actual);
 
-        assertEquals(VENDOR2, ((TextView) actual.findViewById(R.id.vendor_name)).getText());
-        assertEquals(expected, ((TextView) actual.findViewById(R.id.vendor_macs)).getText());
-    }
+        assertEquals(VENDOR_NAME2, actual.<TextView>findViewById(R.id.vendor_name).getText().toString());
+        assertEquals(expected, actual.<TextView>findViewById(R.id.vendor_macs).getText().toString());
 
-    @Test
-    public void testSetVendors() throws Exception {
-        // setup
-        SortedMap<String, List<String>> expected = new TreeMap<>();
-        // execute
-        fixture.setVendors(expected);
-        // validate
-        assertEquals(expected, fixture.getVendors());
-    }
+        verify(vendorService).findMacAddresses(VENDOR_NAME2);
 
-    @NonNull
-    private SortedMap<String, List<String>> withVendors() {
-        SortedMap<String, List<String>> vendors = new TreeMap<>();
-        vendors.put(VENDOR1, Arrays.asList("V1M1Z1", "V1M2Z1", "V1M3Z1"));
-        vendors.put(VENDOR2, Arrays.asList("V2M1X1", "V2M2", "V2M3X1"));
-        vendors.put(VENDOR3, Arrays.asList("V3M1Y1", "V3M2Y1", "V3M3Y1"));
-        return vendors;
+        verify(vendorService, never()).findVendorName(VENDOR_NAME1);
+        verify(vendorService, never()).findVendorName(VENDOR_NAME3);
     }
 
 }

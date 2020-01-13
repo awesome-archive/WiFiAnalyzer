@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,9 @@
 package com.vrem.wifianalyzer.wifi.scanner;
 
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiInfo;
 
+import com.vrem.wifianalyzer.Configuration;
 import com.vrem.wifianalyzer.MainContextHelper;
 import com.vrem.wifianalyzer.settings.Settings;
 
@@ -28,20 +30,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CacheTest {
+    @Mock
+    private WifiInfo wifiInfo;
     @Mock
     private ScanResult scanResult1;
     @Mock
@@ -56,6 +61,7 @@ public class CacheTest {
     private ScanResult scanResult6;
 
     private Settings settings;
+    private Configuration configuration;
     private Cache fixture;
 
     @Before
@@ -63,6 +69,10 @@ public class CacheTest {
         fixture = new Cache();
 
         settings = MainContextHelper.INSTANCE.getSettings();
+        configuration = MainContextHelper.INSTANCE.getConfiguration();
+
+        when(settings.getScanSpeed()).thenReturn(5);
+        when(configuration.isSizeAvailable()).thenReturn(true);
     }
 
     @After
@@ -71,57 +81,119 @@ public class CacheTest {
     }
 
     @Test
-    public void testAddWithNulls() throws Exception {
+    public void testAddWithSizeAvailable() {
         // setup
-        when(settings.getScanInterval()).thenReturn(5);
+        List<ScanResult> scanResults = Collections.emptyList();
         // execute
-        fixture.add(null);
+        fixture.add(scanResults, wifiInfo);
         // validate
-        assertTrue(fixture.getCache().isEmpty());
+        assertEquals(scanResults, fixture.getFirst());
     }
 
     @Test
-    public void testAdd() throws Exception {
+    public void testAddCompliesToMaxCacheSizeWithSizeAvailable() {
         // setup
-        when(settings.getScanInterval()).thenReturn(5);
-        List<ScanResult> scanResults = new ArrayList<>();
-        // execute
-        fixture.add(scanResults);
-        // validate
-        assertEquals(scanResults, fixture.getCache().getFirst());
-    }
-
-    @Test
-    public void testAddCompliesToMaxCacheSize() throws Exception {
-        // setup
-        int scanInterval = 5;
         int cacheSize = 2;
-        when(settings.getScanInterval()).thenReturn(scanInterval);
         List<List<ScanResult>> expected = new ArrayList<>();
         // execute
         for (int i = 0; i < cacheSize; i++) {
-            List<ScanResult> scanResults = new ArrayList<>();
+            List<ScanResult> scanResults = Collections.emptyList();
             expected.add(scanResults);
-            fixture.add(scanResults);
+            fixture.add(scanResults, wifiInfo);
         }
         // validate
         assertEquals(cacheSize, expected.size());
-        assertEquals(cacheSize, fixture.getCache().size());
-        assertEquals(expected.get(cacheSize - 1), fixture.getCache().getFirst());
-        assertEquals(expected.get(cacheSize - 2), fixture.getCache().getLast());
+        assertEquals(expected.get(cacheSize - 1), fixture.getFirst());
+        assertEquals(expected.get(cacheSize - 2), fixture.getLast());
     }
 
     @Test
-    public void testGetWiFiData() throws Exception {
+    public void testGetWiFiDataWithSizeAvailable() {
         // setup
         withScanResults();
         // execute
         List<CacheResult> actuals = fixture.getScanResults();
         // validate
         assertEquals(3, actuals.size());
-        validate(scanResult3, 20, actuals.get(0));
-        validate(scanResult4, 50, actuals.get(1));
+        validate(scanResult3, 25, actuals.get(0));
+        validate(scanResult5, 40, actuals.get(1));
         validate(scanResult6, 10, actuals.get(2));
+    }
+
+    @Test
+    public void testGetCacheSizeWithSizeAvailable() {
+        // setup
+        int[] values = new int[]{
+            1, 4,
+            2, 3,
+            4, 3,
+            5, 2,
+            9, 2,
+            10, 1,
+            20, 1
+        };
+        // execute
+        for (int i = 0; i < values.length; i += 2) {
+            when(settings.getScanSpeed()).thenReturn(values[i]);
+            assertEquals("Scan Speed:" + values[i], values[i + 1], fixture.getCacheSize());
+        }
+        // validate
+        verify(settings, times(values.length / 2)).getScanSpeed();
+    }
+
+    @Test
+    public void testAdd() {
+        // setup
+        when(configuration.isSizeAvailable()).thenReturn(false);
+        List<ScanResult> scanResults = Collections.emptyList();
+        // execute
+        fixture.add(scanResults, wifiInfo);
+        // validate
+        assertEquals(scanResults, fixture.getFirst());
+        assertEquals(wifiInfo, fixture.getWifiInfo());
+    }
+
+    @Test
+    public void testAddCompliesToMaxCacheSize() {
+        // setup
+        int cacheSize = 2;
+        when(configuration.isSizeAvailable()).thenReturn(false);
+        List<List<ScanResult>> expected = new ArrayList<>();
+        // execute
+        for (int i = 0; i < cacheSize; i++) {
+            List<ScanResult> scanResults = Collections.emptyList();
+            expected.add(scanResults);
+            fixture.add(scanResults, wifiInfo);
+        }
+        // validate
+        assertEquals(cacheSize, expected.size());
+        assertEquals(expected.get(cacheSize - 1), fixture.getFirst());
+        assertEquals(expected.get(cacheSize - 2), fixture.getLast());
+    }
+
+    @Test
+    public void testGetWiFiData() {
+        // setup
+        when(configuration.isSizeAvailable()).thenReturn(false);
+        withScanResults();
+        // execute
+        List<CacheResult> actuals = fixture.getScanResults();
+        // validate
+        assertEquals(2, actuals.size());
+        validate(scanResult3, 20, actuals.get(0));
+        validate(scanResult6, 0, actuals.get(1));
+    }
+
+    @Test
+    public void testGetCacheSize() {
+        // setup
+        int expected = 1;
+        when(configuration.isSizeAvailable()).thenReturn(false);
+        // execute
+        int actual = fixture.getCacheSize();
+        // validate
+        assertEquals(expected, actual);
+        verify(settings, never()).getScanSpeed();
     }
 
     private void validate(ScanResult expectedScanResult, int expectedLevel, CacheResult actual) {
@@ -142,28 +214,9 @@ public class CacheTest {
         scanResult6.BSSID = "BBSID3";
         scanResult6.level = 10;
 
-        fixture.add(Arrays.asList(scanResult1, scanResult4));
-        fixture.add(Arrays.asList(scanResult2, scanResult5));
-        fixture.add(Arrays.asList(scanResult3, scanResult6));
-    }
-
-    @Test
-    public void testGetCacheSize() throws Exception {
-        int values[] = new int[]{
-            1, 4,
-            4, 4,
-            5, 3,
-            9, 3,
-            10, 2,
-            19, 2,
-            20, 1
-        };
-
-        for (int i = 0; i < values.length; i += 2) {
-            when(settings.getScanInterval()).thenReturn(values[i]);
-            assertEquals("Scan Interval:" + values[i], values[i + 1], fixture.getCacheSize());
-        }
-        verify(settings, times(values.length / 2)).getScanInterval();
+        fixture.add(Arrays.asList(scanResult1, scanResult4), wifiInfo);
+        fixture.add(Arrays.asList(scanResult2, scanResult5), wifiInfo);
+        fixture.add(Arrays.asList(scanResult3, scanResult6), wifiInfo);
     }
 
 }

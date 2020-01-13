@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,27 +18,31 @@
 
 package com.vrem.wifianalyzer;
 
-import android.support.annotation.NonNull;
-import android.support.v4.util.Pair;
-
 import com.vrem.wifianalyzer.wifi.band.WiFiChannel;
 import com.vrem.wifianalyzer.wifi.band.WiFiChannels;
 
+import androidx.annotation.NonNull;
+import androidx.core.util.Pair;
+
 public class Configuration {
-    private final boolean developmentMode;
-    private final boolean largeScreenLayout;
+    public static final int SIZE_MIN = 1024;
+    public static final int SIZE_MAX = 4096;
+
+    private final boolean largeScreen;
+    private int size;
     private Pair<WiFiChannel, WiFiChannel> wiFiChannelPair;
 
-    public Configuration(boolean largeScreenLayout, boolean developmentMode) {
-        this.largeScreenLayout = largeScreenLayout;
-        this.developmentMode = developmentMode;
+    public Configuration(boolean largeScreen) {
+        this.largeScreen = largeScreen;
+        setSize(SIZE_MAX);
         setWiFiChannelPair(WiFiChannels.UNKNOWN);
     }
 
-    public boolean isLargeScreenLayout() {
-        return largeScreenLayout;
+    public boolean isLargeScreen() {
+        return largeScreen;
     }
 
+    @NonNull
     public Pair<WiFiChannel, WiFiChannel> getWiFiChannelPair() {
         return wiFiChannelPair;
     }
@@ -47,7 +51,12 @@ public class Configuration {
         this.wiFiChannelPair = wiFiChannelPair;
     }
 
-    public boolean isDevelopmentMode() {
-        return developmentMode;
+    public boolean isSizeAvailable() {
+        return size == SIZE_MAX;
     }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
 }

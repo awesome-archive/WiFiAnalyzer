@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,12 +18,12 @@
 
 package com.vrem.wifianalyzer.wifi.band;
 
-import android.support.annotation.NonNull;
-import android.support.v4.util.Pair;
-
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.core.util.Pair;
 
 class WiFiChannelsGHZ2 extends WiFiChannels {
     private static final Pair<Integer, Integer> RANGE = new Pair<>(2400, 2499);
@@ -37,22 +37,21 @@ class WiFiChannelsGHZ2 extends WiFiChannels {
     }
 
     @Override
+    @NonNull
     public List<Pair<WiFiChannel, WiFiChannel>> getWiFiChannelPairs() {
-        return Arrays.asList(SET);
+        return Collections.singletonList(SET);
     }
 
     @Override
+    @NonNull
     public Pair<WiFiChannel, WiFiChannel> getWiFiChannelPairFirst(String countryCode) {
         return SET;
     }
 
     @Override
+    @NonNull
     public List<WiFiChannel> getAvailableChannels(String countryCode) {
-        List<WiFiChannel> wiFiChannels = new ArrayList<>();
-        for (int channel : WiFiChannelCountry.get(countryCode).getChannelsGHZ2()) {
-            wiFiChannels.add(getWiFiChannelByChannel(channel));
-        }
-        return wiFiChannels;
+        return getAvailableChannels(WiFiChannelCountry.get(countryCode).getChannelsGHZ2());
     }
 
     @Override
@@ -61,6 +60,7 @@ class WiFiChannelsGHZ2 extends WiFiChannels {
     }
 
     @Override
+    @NonNull
     public WiFiChannel getWiFiChannelByFrequency(int frequency, @NonNull Pair<WiFiChannel, WiFiChannel> wiFiChannelPair) {
         return isInRange(frequency) ? getWiFiChannel(frequency, SET) : WiFiChannel.UNKNOWN;
     }

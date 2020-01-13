@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,12 @@
 package com.vrem.wifianalyzer;
 
 import com.vrem.wifianalyzer.settings.Settings;
-import com.vrem.wifianalyzer.vendor.model.Database;
 import com.vrem.wifianalyzer.vendor.model.VendorService;
-import com.vrem.wifianalyzer.wifi.scanner.Scanner;
+import com.vrem.wifianalyzer.wifi.filter.adapter.FilterAdapter;
+import com.vrem.wifianalyzer.wifi.scanner.ScannerService;
+
+import org.apache.commons.collections4.Closure;
+import org.apache.commons.collections4.IterableUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +34,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 public enum MainContextHelper {
     INSTANCE;
 
-    private final Map<Class, Object> saved;
+    private final Map<Class<?>, Object> saved;
     private final MainContext mainContext;
 
     MainContextHelper() {
@@ -39,7 +42,7 @@ public enum MainContextHelper {
         saved = new HashMap<>();
     }
 
-    private Object save(Class clazz, Object object) {
+    private Object save(Class<?> clazz, Object object) {
         saved.put(clazz, object);
         return mock(clazz);
     }
@@ -56,15 +59,9 @@ public enum MainContextHelper {
         return result;
     }
 
-    public Scanner getScanner() {
-        Scanner result = (Scanner) save(Scanner.class, mainContext.getScanner());
-        mainContext.setScanner(result);
-        return result;
-    }
-
-    public Database getDatabase() {
-        Database result = (Database) save(Database.class, mainContext.getDatabase());
-        mainContext.setDatabase(result);
+    public ScannerService getScannerService() {
+        ScannerService result = (ScannerService) save(ScannerService.class, mainContext.getScannerService());
+        mainContext.setScannerService(result);
         return result;
     }
 
@@ -80,25 +77,36 @@ public enum MainContextHelper {
         return result;
     }
 
+    public FilterAdapter getFilterAdapter() {
+        FilterAdapter result = (FilterAdapter) save(FilterAdapter.class, mainContext.getFilterAdapter());
+        mainContext.setFilterAdapter(result);
+        return result;
+    }
+
     public void restore() {
-        for (Class clazz : saved.keySet()) {
-            Object result = saved.get(clazz);
-            if (clazz.equals(Settings.class)) {
+        IterableUtils.forEach(saved.keySet(), new RestoreClosure());
+        saved.clear();
+    }
+
+    private class RestoreClosure implements Closure<Class<?>> {
+        @Override
+        public void execute(Class<?> input) {
+            Object result = saved.get(input);
+            if (input.equals(Settings.class)) {
                 mainContext.setSettings((Settings) result);
-            } else if (clazz.equals(VendorService.class)) {
+            } else if (input.equals(VendorService.class)) {
                 mainContext.setVendorService((VendorService) result);
-            } else if (clazz.equals(Scanner.class)) {
-                mainContext.setScanner((Scanner) result);
-            } else if (clazz.equals(MainActivity.class)) {
+            } else if (input.equals(ScannerService.class)) {
+                mainContext.setScannerService((ScannerService) result);
+            } else if (input.equals(MainActivity.class)) {
                 mainContext.setMainActivity((MainActivity) result);
-            } else if (clazz.equals(Database.class)) {
-                mainContext.setDatabase((Database) result);
-            } else if (clazz.equals(Configuration.class)) {
+            } else if (input.equals(Configuration.class)) {
                 mainContext.setConfiguration((Configuration) result);
+            } else if (input.equals(FilterAdapter.class)) {
+                mainContext.setFilterAdapter((FilterAdapter) result);
             } else {
-                throw new IllegalArgumentException(clazz.getName());
+                throw new IllegalArgumentException(input.getName());
             }
         }
-        saved.clear();
     }
 }

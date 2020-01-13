@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,14 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class WiFiAdditionalTest {
     private static final String VENDOR_NAME = "VendorName";
 
     @Test
-    public void testWiFiAdditionalWithWiFiConnection() throws Exception {
+    public void testWiFiAdditionalWithWiFiConnection() {
         // setup
         WiFiConnection wiFiConnection = new WiFiConnection("SSID", "BSSID", "192.168.1.10", 22);
         // execute
@@ -40,28 +38,17 @@ public class WiFiAdditionalTest {
     }
 
     @Test
-    public void testWiFiAdditional() throws Exception {
+    public void testWiFiAdditional() {
         // execute
-        WiFiAdditional fixture = new WiFiAdditional(VENDOR_NAME, false);
+        WiFiAdditional fixture = new WiFiAdditional(VENDOR_NAME);
         // validate
         assertEquals(VENDOR_NAME, fixture.getVendorName());
-        assertFalse(fixture.isConfiguredNetwork());
     }
 
     @Test
-    public void testWiFiAdditionalWithConfiguredNetwork() throws Exception {
-        // execute
-        WiFiAdditional fixture = new WiFiAdditional(VENDOR_NAME, true);
-        // validate
-        assertEquals(VENDOR_NAME, fixture.getVendorName());
-        assertTrue(fixture.isConfiguredNetwork());
-    }
-
-    @Test
-    public void testWiFiAdditionalEmpty() throws Exception {
+    public void testWiFiAdditionalEmpty() {
         // validate
         assertEquals(StringUtils.EMPTY, WiFiAdditional.EMPTY.getVendorName());
-        assertFalse(WiFiAdditional.EMPTY.isConfiguredNetwork());
     }
 
 }

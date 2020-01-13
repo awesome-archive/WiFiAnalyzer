@@ -1,6 +1,6 @@
 /*
- * WiFi Analyzer
- * Copyright (C) 2016  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
+ * WiFiAnalyzer
+ * Copyright (C) 2019  VREM Software Development <VREMSoftwareDevelopment@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,6 @@
 
 package com.vrem.wifianalyzer.wifi.model;
 
-import android.support.annotation.NonNull;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -29,8 +27,11 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+
 public class WiFiDetail implements Comparable<WiFiDetail> {
     public static final WiFiDetail EMPTY = new WiFiDetail(StringUtils.EMPTY, StringUtils.EMPTY, StringUtils.EMPTY, WiFiSignal.EMPTY);
+    private static final String SSID_EMPTY = "*hidden*";
 
     private final List<WiFiDetail> children;
     private final String SSID;
@@ -57,40 +58,52 @@ public class WiFiDetail implements Comparable<WiFiDetail> {
         this(wiFiDetail.SSID, wiFiDetail.BSSID, wiFiDetail.getCapabilities(), wiFiDetail.getWiFiSignal(), wiFiAdditional);
     }
 
+    @NonNull
     public Security getSecurity() {
         return Security.findOne(capabilities);
     }
 
+    @NonNull
     public String getSSID() {
-        return isHidden() ? "***" : SSID;
+        return isHidden() ? SSID_EMPTY : SSID;
     }
 
-    public boolean isHidden() {
+    boolean isHidden() {
         return StringUtils.isBlank(SSID);
     }
 
+    @NonNull
     public String getBSSID() {
         return BSSID;
     }
 
+    @NonNull
     public String getCapabilities() {
         return capabilities;
     }
 
+    @NonNull
     public WiFiSignal getWiFiSignal() {
         return wiFiSignal;
     }
 
+    @NonNull
     public WiFiAdditional getWiFiAdditional() {
         return wiFiAdditional;
     }
 
+    @NonNull
     public List<WiFiDetail> getChildren() {
         return children;
     }
 
+    public boolean noChildren() {
+        return !getChildren().isEmpty();
+    }
+
+    @NonNull
     public String getTitle() {
-        return String.format("%s (%s)", getSSID(), getBSSID());
+        return String.format("%s (%s)", getSSID(), BSSID);
     }
 
     public void addChild(@NonNull WiFiDetail wiFiDetail) {
@@ -98,15 +111,16 @@ public class WiFiDetail implements Comparable<WiFiDetail> {
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
+    public boolean equals(Object o) {
+        if (this == o) return true;
 
-        if (other == null || getClass() != other.getClass()) return false;
+        if (o == null || getClass() != o.getClass()) return false;
 
-        WiFiDetail otherDetail = (WiFiDetail) other;
+        WiFiDetail that = (WiFiDetail) o;
+
         return new EqualsBuilder()
-            .append(getSSID(), otherDetail.getSSID())
-            .append(getBSSID(), otherDetail.getBSSID())
+            .append(getSSID(), that.getSSID())
+            .append(getBSSID(), that.getBSSID())
             .isEquals();
     }
 
